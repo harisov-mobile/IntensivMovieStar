@@ -16,9 +16,9 @@ class TvShowItem (
     override fun bind(viewHolder: GroupieViewHolder, position: Int) {
         viewHolder.description.text = content.title
         viewHolder.tv_show_rating.rating = content.rating
-//        viewHolder.content.setOnClickListener {
-//            onClick.invoke(content)
-//        }
+        viewHolder.item_layout.setOnClickListener {
+            onClick.invoke(content)
+        }
 
         // TODO Получать из модели
         Picasso.get()
