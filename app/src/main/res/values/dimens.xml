@@ -20,4 +20,9 @@
     <dimen name="search_bar_height">56dp</dimen>
     <dimen name="min_height">100dp</dimen>
 
+    <!-- Movie Card Item -->
+    <dimen name="tv_show_card_width">130dp</dimen>
+    <dimen name="tv_show_card_height">170dp</dimen>
+    <dimen name="tv_show_card_text_width">96dp</dimen>
+
 </resources>

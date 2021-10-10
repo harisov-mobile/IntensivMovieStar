@@ -10,9 +10,11 @@
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/image_preview"
-        android:layout_width="@dimen/movie_card_width"
+        android:layout_width="0dp"
         android:layout_height="@dimen/movie_card_height"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
         android:scaleType="centerCrop"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -28,13 +30,16 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
+        android:capitalize="none"
         android:ellipsize="end"
         android:maxLines="1"
+        android:textAllCaps="true"
         android:textColor="@color/white"
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/image_preview"
+        tools:ignore="TouchTargetSizeCheck,TouchTargetSizeCheck"
         tools:text="The Walking Dead"
         tools:textColor="@color/white" />
 
