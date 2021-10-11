@@ -7,7 +7,7 @@ import kotlinx.android.synthetic.main.item_tv_show.*
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.TvShow
 
-class TvShowItem (
+class TvShowItem(
     private val content: TvShow,
     private val onClick: (tvShow: TvShow) -> Unit
 ) : Item() {
@@ -25,5 +25,4 @@ class TvShowItem (
             .load("https://m.media-amazon.com/images/M/MV5BYTk3MDljOWQtNGI2My00OTEzLTlhYjQtOTQ4ODM2MzUwY2IwXkEyXkFqcGdeQXVyNTIzOTk5ODM@._V1_.jpg")
             .into(viewHolder.image_preview)
     }
-
 }
