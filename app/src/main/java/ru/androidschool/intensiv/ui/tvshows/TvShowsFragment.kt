@@ -11,7 +11,6 @@ import kotlinx.android.synthetic.main.tv_shows_fragment.*
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.MockRepository
 import ru.androidschool.intensiv.data.TvShow
-import ru.androidschool.intensiv.ui.feed.TvShowItem
 
 class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
 
