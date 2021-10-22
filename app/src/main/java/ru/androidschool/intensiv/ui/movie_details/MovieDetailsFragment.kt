@@ -74,7 +74,7 @@ class MovieDetailsFragment : Fragment() {
 
             val genreListSize = movie.genreList.size
             var genreString = ""
-            for (i in 0..(genreListSize-1)) {
+            for (i in 0..(genreListSize - 1)) {
                 genreString = genreString + ", " + movie.genreList[i].name // хитрый ход - чтобы в конце не обрезать, сделаю запятую с пробелом вначале, а потом с начала и удалю
             }
             genreString = genreString.substringAfter(' ')
@@ -106,5 +106,3 @@ class MovieDetailsFragment : Fragment() {
         const val KEY_ACTOR_ID = "actor_id"
     }
 }
-
-
