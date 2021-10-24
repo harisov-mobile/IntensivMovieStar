@@ -8,7 +8,6 @@ import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import kotlinx.android.synthetic.main.fragment_watchlist.*
 import ru.androidschool.intensiv.R
-import ru.androidschool.intensiv.data.MockRepository
 
 class WatchlistFragment : Fragment(R.layout.fragment_watchlist) {
 

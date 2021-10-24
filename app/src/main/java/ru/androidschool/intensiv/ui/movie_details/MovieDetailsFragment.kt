@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
-import kotlinx.android.synthetic.main.item_with_text.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -23,13 +22,9 @@ import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.Actor
 import ru.androidschool.intensiv.data.MovieCreditsResponse
 import ru.androidschool.intensiv.data.MovieDetails
-import ru.androidschool.intensiv.data.MovieResponse
 import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.feed.ActorItem
 import ru.androidschool.intensiv.ui.feed.FeedFragment
-import ru.androidschool.intensiv.ui.feed.MainCardContainer
-import ru.androidschool.intensiv.ui.feed.MovieItem
-import java.util.*
 
 class MovieDetailsFragment : Fragment() {
 
@@ -122,7 +117,6 @@ class MovieDetailsFragment : Fragment() {
                     ActorItem(it) { actor -> openActorDetails(actor) } // если понадобится открыть фрагмент с описанием актера
                 }.toList()
                 adapter.apply { addAll(actorItemList) }
-
             }
             override fun onFailure(call: Call<MovieCreditsResponse>, t: Throwable) {
                 // Log error here since request failed

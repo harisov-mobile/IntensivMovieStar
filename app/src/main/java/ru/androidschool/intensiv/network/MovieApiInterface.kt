@@ -9,19 +9,27 @@ import ru.androidschool.intensiv.data.*
 interface MovieApiInterface {
 
     @GET("movie/now_playing")
-    fun getNowPlayingMovies(@Query("api_key") apiKey: String, @Query("language") language: String
+    fun getNowPlayingMovies(
+        @Query("api_key") apiKey: String,
+        @Query("language") language: String
     ): Call<MovieResponse>
 
     @GET("movie/upcoming")
-    fun getUpcomingMovies(@Query("api_key") apiKey: String, @Query("language") language: String
+    fun getUpcomingMovies(
+        @Query("api_key") apiKey: String,
+        @Query("language") language: String
     ): Call<MovieResponse>
 
     @GET("movie/popular")
-    fun getPopularMovies(@Query("api_key") apiKey: String, @Query("language") language: String
+    fun getPopularMovies(
+        @Query("api_key") apiKey: String,
+        @Query("language") language: String
     ): Call<MovieResponse>
 
     @GET("tv/popular")
-    fun getPopularTvShows(@Query("api_key") apiKey: String, @Query("language") language: String
+    fun getPopularTvShows(
+        @Query("api_key") apiKey: String,
+        @Query("language") language: String
     ): Call<TvShowResponse>
 
     @GET("movie/{movie_id}")

@@ -2,7 +2,9 @@ package ru.androidschool.intensiv.ui.feed
 
 import android.os.Bundle
 import android.util.Log
-import android.view.*
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.navOptions
@@ -16,7 +18,6 @@ import retrofit2.Callback
 import retrofit2.Response
 import ru.androidschool.intensiv.BuildConfig
 import ru.androidschool.intensiv.R
-import ru.androidschool.intensiv.data.MockRepository
 import ru.androidschool.intensiv.data.Movie
 import ru.androidschool.intensiv.data.MovieResponse
 import ru.androidschool.intensiv.network.MovieApiClient
@@ -78,7 +79,6 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
                     )
                 )
                 adapter.apply { addAll(moviesList) }
-
             }
             override fun onFailure(call: Call<MovieResponse>, t: Throwable) {
                 // Log error here since request failed

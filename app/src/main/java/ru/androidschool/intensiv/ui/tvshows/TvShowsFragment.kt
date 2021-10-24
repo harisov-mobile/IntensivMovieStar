@@ -8,21 +8,15 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.navOptions
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
-import kotlinx.android.synthetic.main.feed_fragment.*
 import kotlinx.android.synthetic.main.tv_shows_fragment.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import ru.androidschool.intensiv.BuildConfig
 import ru.androidschool.intensiv.R
-import ru.androidschool.intensiv.data.MockRepository
-import ru.androidschool.intensiv.data.MovieResponse
 import ru.androidschool.intensiv.data.TvShow
 import ru.androidschool.intensiv.data.TvShowResponse
 import ru.androidschool.intensiv.network.MovieApiClient
-import ru.androidschool.intensiv.ui.feed.FeedFragment
-import ru.androidschool.intensiv.ui.feed.MainCardContainer
-import ru.androidschool.intensiv.ui.feed.MovieItem
 
 class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
 
@@ -67,7 +61,6 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
                             }
                         }.toList()
                 adapter.apply { addAll(tvShowList) }
-
             }
 
             override fun onFailure(call: Call<TvShowResponse>, t: Throwable) {

@@ -2,10 +2,10 @@ package ru.androidschool.intensiv.data
 
 import com.google.gson.annotations.SerializedName
 
-data class Dates (
+data class Dates(
     @SerializedName("maximum")
-    val maximum : String,
+    val maximum: String,
 
     @SerializedName("minimum")
-    val minimum : String
+    val minimum: String
 )
