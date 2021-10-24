@@ -79,12 +79,12 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
 
     private fun openTvShowDetails(tvShow: TvShow) {
         val bundle = Bundle()
-        bundle.putString(KEY_TITLE, tvShow.name)
-        findNavController().navigate(R.id.movie_details_fragment, bundle, options)
+        bundle.putInt(KEY_TV_SHOW_ID, tvShow.id)
+        findNavController().navigate(R.id.tv_show_details_fragment, bundle, options)
     }
 
     companion object {
-        const val KEY_TITLE = "name"
+        const val KEY_TV_SHOW_ID = "tv_show_id"
         private val TAG = "TvShowsFragment"
     }
 }

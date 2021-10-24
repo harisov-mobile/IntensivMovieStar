@@ -5,7 +5,16 @@
       <map>
         <entry key="..\:/repo/Android/AndroidSchool.ru/Intensive/intensive_harisov_r/IntensivStar-master/app/src/main/res/layout/feed_fragment.xml" value="0.2640757349277529" />
         <entry key="..\:/repo/Android/AndroidSchool.ru/Intensive/intensive_harisov_r/IntensivStar-master/app/src/main/res/layout/feed_header.xml" value="0.2760416666666667" />
-        <entry key="..\:/repo/Android/AndroidSchool.ru/Intensive/intensive_harisov_r/IntensivStar-master/app/src/main/res/layout/movie_details_fragment_part.xml" value="0.1453125" />
+        <entry key="..\:/repo/Android/AndroidSchool.ru/Intensive/intensive_harisov_r/IntensivStar-master/app/src/main/res/layout/fragment_profile.xml" value="0.2760416666666667" />
+        <entry key="..\:/repo/Android/AndroidSchool.ru/Intensive/intensive_harisov_r/IntensivStar-master/app/src/main/res/layout/fragment_search.xml" value="0.2760416666666667" />
+        <entry key="..\:/repo/Android/AndroidSchool.ru/Intensive/intensive_harisov_r/IntensivStar-master/app/src/main/res/layout/fragment_watchlist.xml" value="0.2760416666666667" />
+        <entry key="..\:/repo/Android/AndroidSchool.ru/Intensive/intensive_harisov_r/IntensivStar-master/app/src/main/res/layout/item_with_text.xml" value="0.2760416666666667" />
+        <entry key="..\:/repo/Android/AndroidSchool.ru/Intensive/intensive_harisov_r/IntensivStar-master/app/src/main/res/layout/movie_details_fragment.xml" value="0.2760416666666667" />
+        <entry key="..\:/repo/Android/AndroidSchool.ru/Intensive/intensive_harisov_r/IntensivStar-master/app/src/main/res/layout/movie_details_fragment_part.xml" value="0.35999999219721035" />
+        <entry key="..\:/repo/Android/AndroidSchool.ru/Intensive/intensive_harisov_r/IntensivStar-master/app/src/main/res/layout/search_toolbar.xml" value="0.2760416666666667" />
+        <entry key="..\:/repo/Android/AndroidSchool.ru/Intensive/intensive_harisov_r/IntensivStar-master/app/src/main/res/layout/tv_show_details_fragment.xml" value="0.2760416666666667" />
+        <entry key="..\:/repo/Android/AndroidSchool.ru/Intensive/intensive_harisov_r/IntensivStar-master/app/src/main/res/layout/tv_show_details_fragment_part.xml" value="0.2760416666666667" />
+        <entry key="..\:/repo/Android/AndroidSchool.ru/Intensive/intensive_harisov_r/IntensivStar-master/app/src/main/res/layout/tv_shows_fragment.xml" value="0.2760416666666667" />
       </map>
     </option>
   </component>
