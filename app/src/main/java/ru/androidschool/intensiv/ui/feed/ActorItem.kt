@@ -17,15 +17,19 @@ class ActorItem(
     override fun getLayout() = R.layout.item_actor
 
     override fun bind(viewHolder: GroupieViewHolder, position: Int) {
-        viewHolder.actor_name_text_view.text = content.name
-        viewHolder.actor_surname_text_view.text = content.surname
+
+        val substr = content.name.split(' ', limit = 2)
+        val substrSize = substr.size
+
+        viewHolder.actor_name_text_view.text = if (substrSize > 0) substr[0] else ""
+        viewHolder.actor_surname_text_view.text = if (substrSize > 1) substr[1] else ""
         viewHolder.item_layout.setOnClickListener {
             onClick.invoke(content)
         }
 
         // TODO Получать из модели
         Picasso.get()
-            .load("https://m.media-amazon.com/images/M/MV5BYTk3MDljOWQtNGI2My00OTEzLTlhYjQtOTQ4ODM2MzUwY2IwXkEyXkFqcGdeQXVyNTIzOTk5ODM@._V1_.jpg")
+            .load(content.profilePath)
             .into(viewHolder.image_preview)
     }
 }

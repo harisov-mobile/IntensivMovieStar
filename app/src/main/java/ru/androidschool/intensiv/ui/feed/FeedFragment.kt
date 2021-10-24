@@ -1,6 +1,7 @@
 package ru.androidschool.intensiv.ui.feed
 
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -10,17 +11,25 @@ import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import kotlinx.android.synthetic.main.feed_fragment.*
 import kotlinx.android.synthetic.main.feed_header.*
 import kotlinx.android.synthetic.main.search_toolbar.view.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import ru.androidschool.intensiv.BuildConfig
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.MockRepository
 import ru.androidschool.intensiv.data.Movie
+import ru.androidschool.intensiv.data.MovieResponse
+import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.afterTextChanged
 import timber.log.Timber
 
 class FeedFragment : Fragment(R.layout.feed_fragment) {
 
-    private val adapter by lazy {
-        GroupAdapter<GroupieViewHolder>()
-    }
+//    private val adapter by lazy {
+//        GroupAdapter<GroupieViewHolder>()
+//    }
+
+    private lateinit var adapter: GroupAdapter<GroupieViewHolder>
 
     private val options = navOptions {
         anim {
@@ -41,36 +50,71 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
             }
         }
 
-        // Используя Мок-репозиторий получаем фэйковый список фильмов
-        val moviesList = listOf(
-            MainCardContainer(
-                R.string.recommended,
-                MockRepository.getMovies().map {
-                    MovieItem(it) { movie ->
-                        openMovieDetails(
-                            movie
-                        )
-                    }
-                }.toList()
-            )
-        )
+        adapter = GroupAdapter<GroupieViewHolder>() // при клике на фильм и возврате в список
+        // происходило добавление MainCardContainer в адаптер, в результате чего задваивались списки фильмов
+        // не нашел решения для данной проблемы, поэтому просто каждый раз создаю по-новой адаптер
+        movies_recycler_view.adapter = adapter
 
-        movies_recycler_view.adapter = adapter.apply { addAll(moviesList) }
+        // Вызываем метод getPopularMovies()
+        val callPopularMovies = MovieApiClient.apiClient.getPopularMovies(BuildConfig.THE_MOVIE_DATABASE_API, "ru")
+        callPopularMovies.enqueue(object : Callback<MovieResponse> {
+            override fun onResponse(
+                call: Call<MovieResponse>,
+                response: Response<MovieResponse>
+            ) {
+                // Получаем результат
+                val movieResultList = response.body()!!.results
 
-        // Используя Мок-репозиторий получаем фэйковый список фильмов
-        // Чтобы отобразить второй ряд фильмов
-        val newMoviesList = listOf(
-            MainCardContainer(
-                R.string.upcoming,
-                MockRepository.getMovies().map {
-                    MovieItem(it) { movie ->
-                        openMovieDetails(movie)
-                    }
-                }.toList()
-            )
-        )
+                val moviesList = listOf(
+                    MainCardContainer(
+                        R.string.recommended,
+                        movieResultList.map {
+                            MovieItem(it) { movie ->
+                                openMovieDetails(
+                                    movie
+                                )
+                            }
+                        }.toList()
+                    )
+                )
+                adapter.apply { addAll(moviesList) }
 
-        adapter.apply { addAll(newMoviesList) }
+            }
+            override fun onFailure(call: Call<MovieResponse>, t: Throwable) {
+                // Log error here since request failed
+                Log.e(TAG, t.toString())
+            }
+        })
+
+        // Вызываем метод getUpcomingMovies()
+        val callUpcomingMovies = MovieApiClient.apiClient.getUpcomingMovies(BuildConfig.THE_MOVIE_DATABASE_API, "ru")
+        callUpcomingMovies.enqueue(object : Callback<MovieResponse> {
+            override fun onResponse(
+                call: Call<MovieResponse>,
+                response: Response<MovieResponse>
+            ) {
+                // Получаем результат
+                val movieResultList = response.body()!!.results
+
+                val moviesList = listOf(
+                    MainCardContainer(
+                        R.string.upcoming,
+                        movieResultList.map {
+                            MovieItem(it) { movie ->
+                                openMovieDetails(
+                                    movie
+                                )
+                            }
+                        }.toList()
+                    )
+                )
+                adapter.apply { addAll(moviesList) }
+            }
+            override fun onFailure(call: Call<MovieResponse>, t: Throwable) {
+                // Log error here since request failed
+                Log.e(TAG, t.toString())
+            }
+        })
     }
 
     private fun openMovieDetails(movie: Movie) {
@@ -98,5 +142,6 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
         const val MIN_LENGTH = 3
         const val KEY_TITLE = "title"
         const val KEY_SEARCH = "search"
+        private val TAG = "FeedFragment"
     }
 }

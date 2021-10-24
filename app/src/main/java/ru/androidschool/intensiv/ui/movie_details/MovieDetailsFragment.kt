@@ -10,14 +10,11 @@ import android.widget.Toast
 import androidx.appcompat.widget.AppCompatRatingBar
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
-import com.squareup.picasso.Picasso
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import kotlinx.android.synthetic.main.item_with_text.*
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.Actor
-import ru.androidschool.intensiv.data.MockRepository
-import ru.androidschool.intensiv.ui.feed.ActorItem
 import ru.androidschool.intensiv.ui.feed.FeedFragment
 import java.util.*
 
@@ -59,46 +56,46 @@ class MovieDetailsFragment : Fragment() {
 
         val movieTitle = requireArguments().getString(FeedFragment.KEY_TITLE)
 
-        val movie = MockRepository.getMovies().find { it.title == movieTitle }
-
-        movie?.let {
-            titleTextView.text = movie.title
-            overviewTextView.text = movie.overview
-            studioTextView.text = movie.studio
-            movieRating.rating = movie.rating
-
-            val cal = Calendar.getInstance()
-            cal.time = movie.releaseDate
-
-            releaseDateTextView.text = cal.get(Calendar.YEAR).toString()
-
-            val genreListSize = movie.genreList.size
-            var genreString = ""
-            for (i in 0..(genreListSize - 1)) {
-                genreString = genreString + ", " + movie.genreList[i].name // хитрый ход - чтобы в конце не обрезать, сделаю запятую с пробелом вначале, а потом с начала и удалю
-            }
-            genreString = genreString.substringAfter(' ')
-
-            genreTextView.text = genreString
-
-            // получаем список актеров из фильма и "приготавливаем" для Groupie
-            val actorItemList = movie.actorList.map {
-                ActorItem(it) { actor -> openActorDetails(actor) } // если понадобится открыть фрагмент с описанием актера
-            }.toList()
-
-            actorListRecyclerView.adapter = adapter.apply { addAll(actorItemList) }
-
-            Picasso.get()
-                .load(movie.previewUrl)
-                .into(imagePreview)
-        }
+//        val movie = MockRepository.getMovies().find { it.title == movieTitle }
+//
+//        movie?.let {
+//            titleTextView.text = movie.title
+//            overviewTextView.text = movie.overview
+//            studioTextView.text = movie.studio
+//            movieRating.rating = movie.rating
+//
+//            val cal = Calendar.getInstance()
+//            cal.time = movie.releaseDate
+//
+//            releaseDateTextView.text = cal.get(Calendar.YEAR).toString()
+//
+//            val genreListSize = movie.genreList.size
+//            var genreString = ""
+//            for (i in 0..(genreListSize - 1)) {
+//                genreString = genreString + ", " + movie.genreList[i].name // хитрый ход - чтобы в конце не обрезать, сделаю запятую с пробелом вначале, а потом с начала и удалю
+//            }
+//            genreString = genreString.substringAfter(' ')
+//
+//            genreTextView.text = genreString
+//
+//            // получаем список актеров из фильма и "приготавливаем" для Groupie
+//            val actorItemList = movie.actorList.map {
+//                ActorItem(it) { actor -> openActorDetails(actor) } // если понадобится открыть фрагмент с описанием актера
+//            }.toList()
+//
+//            actorListRecyclerView.adapter = adapter.apply { addAll(actorItemList) }
+//
+//            Picasso.get()
+//                .load(movie.previewUrl)
+//                .into(imagePreview)
+//        }
     }
 
     private fun openActorDetails(actor: Actor) {
 //        val bundle = Bundle()
 //        bundle.putString(KEY_ACTOR_ID, actor.id)
 //        findNavController().navigate(R.id.actor_details_fragment, bundle, options)
-        Toast.makeText(context, "" + actor.name + " " + actor.surname, Toast.LENGTH_SHORT).show()
+//        Toast.makeText(context, "" + actor.name + " " + actor.surname, Toast.LENGTH_SHORT).show()
     }
 
     companion object {
