@@ -82,10 +82,10 @@ class MovieDetailsFragment : Fragment() {
                     overviewTextView.text = movieDetails.overview
 
                     studioTextView.text = movieDetails.productionCompanies.map {
-                            company -> company.name }.joinToString(", ")
+                            company -> company.name }.joinToString()
 
                     genreTextView.text = movieDetails.genres.map {
-                            genre -> genre.name }.joinToString(", ")
+                            genre -> genre.name }.joinToString()
 
                     releaseDateTextView.text = movieDetails.releaseDate.substring(0, 4)
 

@@ -77,10 +77,10 @@ class TvShowDetailsFragment : Fragment() {
                     overviewTextView.text = tvShowDetails.overview
 
                     studioTextView.text = tvShowDetails.productionCompanies.map {
-                            company -> company.name }.joinToString(", ")
+                            company -> company.name }.joinToString()
 
                     genreTextView.text = tvShowDetails.genres.map {
-                            genre -> genre.name }.joinToString(", ")
+                            genre -> genre.name }.joinToString()
 
                     releaseDateTextView.text = tvShowDetails.firstAirDate.substring(0, 4)
 
