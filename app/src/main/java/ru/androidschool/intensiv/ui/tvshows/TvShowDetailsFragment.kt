@@ -65,7 +65,7 @@ class TvShowDetailsFragment : Fragment() {
         actorListRecyclerView.adapter = adapter
 
         // Вызываем метод getMovieDetails()
-        val callTvShowDetails = MovieApiClient.apiClient.getTvShowDetails(tvShowId, BuildConfig.THE_MOVIE_DATABASE_API, "ru")
+        val callTvShowDetails = MovieApiClient.apiClient.getTvShowDetails(tvShowId)
         callTvShowDetails.enqueue(object : Callback<TvShowDetails> {
             override fun onResponse(
                 call: Call<TvShowDetails>,
@@ -97,7 +97,7 @@ class TvShowDetailsFragment : Fragment() {
 
         // получаем список актеров из фильма и "приготавливаем" для Groupie
         // Вызываем метод getMovieDetails()
-        val callTvShowCredits = MovieApiClient.apiClient.getTvShowCredits(tvShowId, BuildConfig.THE_MOVIE_DATABASE_API, "ru")
+        val callTvShowCredits = MovieApiClient.apiClient.getTvShowCredits(tvShowId)
         callTvShowCredits.enqueue(object : Callback<MovieCreditsResponse> {
             override fun onResponse(
                 call: Call<MovieCreditsResponse>,

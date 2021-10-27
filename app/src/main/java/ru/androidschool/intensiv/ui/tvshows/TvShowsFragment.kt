@@ -39,7 +39,7 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
         tvshows_recycler_view.adapter = adapter
 
         // Вызываем метод getPopularTvShows()
-        val callPopularTvShows = MovieApiClient.apiClient.getPopularTvShows(BuildConfig.THE_MOVIE_DATABASE_API, "ru")
+        val callPopularTvShows = MovieApiClient.apiClient.getPopularTvShows()
         callPopularTvShows.enqueue(object : Callback<TvShowResponse> {
             override fun onResponse(
                 call: Call<TvShowResponse>,

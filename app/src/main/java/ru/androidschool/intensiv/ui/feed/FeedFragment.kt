@@ -52,7 +52,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
         movies_recycler_view.adapter = adapter
 
         // Вызываем метод getPopularMovies()
-        val callPopularMovies = MovieApiClient.apiClient.getPopularMovies(BuildConfig.THE_MOVIE_DATABASE_API, "ru")
+        val callPopularMovies = MovieApiClient.apiClient.getPopularMovies()
         callPopularMovies.enqueue(object : Callback<MovieResponse> {
             override fun onResponse(
                 call: Call<MovieResponse>,
@@ -82,7 +82,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
         })
 
         // Вызываем метод getUpcomingMovies()
-        val callUpcomingMovies = MovieApiClient.apiClient.getUpcomingMovies(BuildConfig.THE_MOVIE_DATABASE_API, "ru")
+        val callUpcomingMovies = MovieApiClient.apiClient.getUpcomingMovies()
         callUpcomingMovies.enqueue(object : Callback<MovieResponse> {
             override fun onResponse(
                 call: Call<MovieResponse>,

@@ -70,7 +70,7 @@ class MovieDetailsFragment : Fragment() {
         actorListRecyclerView.adapter = adapter
 
         // Вызываем метод getMovieDetails()
-        val callMovieDetails = MovieApiClient.apiClient.getMovieDetails(movieId, BuildConfig.THE_MOVIE_DATABASE_API, "ru")
+        val callMovieDetails = MovieApiClient.apiClient.getMovieDetails(movieId)
         callMovieDetails.enqueue(object : Callback<MovieDetails> {
             override fun onResponse(
                 call: Call<MovieDetails>,
@@ -102,7 +102,7 @@ class MovieDetailsFragment : Fragment() {
 
         // получаем список актеров из фильма и "приготавливаем" для Groupie
         // Вызываем метод getMovieDetails()
-        val callMovieCredits = MovieApiClient.apiClient.getMovieCredits(movieId, BuildConfig.THE_MOVIE_DATABASE_API, "ru")
+        val callMovieCredits = MovieApiClient.apiClient.getMovieCredits(movieId)
         callMovieCredits.enqueue(object : Callback<MovieCreditsResponse> {
             override fun onResponse(
                 call: Call<MovieCreditsResponse>,
