@@ -26,11 +26,9 @@ import timber.log.Timber
 
 class FeedFragment : Fragment(R.layout.feed_fragment) {
 
-//    private val adapter by lazy {
-//        GroupAdapter<GroupieViewHolder>()
-//    }
-
-    private lateinit var adapter: GroupAdapter<GroupieViewHolder>
+    private val adapter by lazy {
+        GroupAdapter<GroupieViewHolder>()
+    }
 
     private val options = navOptions {
         anim {
@@ -51,9 +49,6 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
             }
         }
 
-        adapter = GroupAdapter<GroupieViewHolder>() // при клике на фильм и возврате в список
-        // происходило добавление MainCardContainer в адаптер, в результате чего задваивались списки фильмов
-        // не нашел решения для данной проблемы, поэтому просто каждый раз создаю по-новой адаптер
         movies_recycler_view.adapter = adapter
 
         // Вызываем метод getPopularMovies()
@@ -132,6 +127,11 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
     override fun onStop() {
         super.onStop()
         search_toolbar.clear()
+
+        // при клике на фильм и возврате в список
+        // происходило добавление MainCardContainer в адаптер, в результате чего задваивались списки фильмов
+        // поэтому очищаю
+        adapter.clear()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

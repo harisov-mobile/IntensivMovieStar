@@ -20,11 +20,9 @@ import ru.androidschool.intensiv.network.MovieApiClient
 
 class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
 
-//    private val adapter by lazy {
-//        GroupAdapter<GroupieViewHolder>()
-//    }
-
-    private lateinit var adapter: GroupAdapter<GroupieViewHolder>
+    private val adapter by lazy {
+        GroupAdapter<GroupieViewHolder>()
+    }
 
     private val options = navOptions {
         anim {
@@ -38,9 +36,6 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapter = GroupAdapter<GroupieViewHolder>() // при клике на телесериал и возврате в список
-        // происходило добавление в адаптер, в результате чего задваивались списки телесериалов
-        // не нашел решения для данной проблемы, поэтому просто каждый раз создаю по-новой адаптер
         tvshows_recycler_view.adapter = adapter
 
         // Вызываем метод getPopularTvShows()
@@ -74,6 +69,15 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
         val bundle = Bundle()
         bundle.putInt(KEY_TV_SHOW_ID, tvShow.id)
         findNavController().navigate(R.id.tv_show_details_fragment, bundle, options)
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        // при клике на сериал и возврате в список
+        // происходило добавление в адаптер, в результате чего задваивались списки сериалов
+        // поэтому очищаю
+        adapter.clear()
     }
 
     companion object {
