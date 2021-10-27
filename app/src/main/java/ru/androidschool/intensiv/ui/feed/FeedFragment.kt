@@ -59,21 +59,23 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
                 response: Response<MovieResponse>
             ) {
                 // Получаем результат
-                val movieResultList = response.body()!!.results
+                response.body()?.let{ body ->
+                    val movieResultList = body.results
 
-                val moviesList = listOf(
-                    MainCardContainer(
-                        R.string.recommended,
-                        movieResultList.map {
-                            MovieItem(it) { movie ->
-                                openMovieDetails(
-                                    movie
-                                )
-                            }
-                        }.toList()
+                    val moviesList = listOf(
+                        MainCardContainer(
+                            R.string.recommended,
+                            movieResultList.map {
+                                MovieItem(it) { movie ->
+                                    openMovieDetails(
+                                        movie
+                                    )
+                                }
+                            }.toList()
+                        )
                     )
-                )
-                adapter.apply { addAll(moviesList) }
+                    adapter.apply { addAll(moviesList) }
+                }
             }
             override fun onFailure(call: Call<MovieResponse>, t: Throwable) {
                 // Log error here since request failed
@@ -89,21 +91,23 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
                 response: Response<MovieResponse>
             ) {
                 // Получаем результат
-                val movieResultList = response.body()!!.results
+                response.body()?.let{ body ->
+                    val movieResultList = body.results
 
-                val moviesList = listOf(
-                    MainCardContainer(
-                        R.string.upcoming,
-                        movieResultList.map {
-                            MovieItem(it) { movie ->
-                                openMovieDetails(
-                                    movie
-                                )
-                            }
-                        }.toList()
+                    val moviesList = listOf(
+                        MainCardContainer(
+                            R.string.upcoming,
+                            movieResultList.map {
+                                MovieItem(it) { movie ->
+                                    openMovieDetails(
+                                        movie
+                                    )
+                                }
+                            }.toList()
+                        )
                     )
-                )
-                adapter.apply { addAll(moviesList) }
+                    adapter.apply { addAll(moviesList) }
+                }
             }
             override fun onFailure(call: Call<MovieResponse>, t: Throwable) {
                 // Log error here since request failed

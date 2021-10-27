@@ -46,16 +46,18 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
                 response: Response<TvShowResponse>
             ) {
                 // Получаем результат
-                val tvShowResultList = response.body()!!.results
+                response.body()?.let{ body ->
+                    val tvShowResultList = body.results
 
-                val tvShowList = tvShowResultList.map {
-                            TvShowItem(it) { tvShow ->
-                                openTvShowDetails(
-                                    tvShow
-                                )
-                            }
-                        }.toList()
-                adapter.apply { addAll(tvShowList) }
+                    val tvShowList = tvShowResultList.map {
+                        TvShowItem(it) { tvShow ->
+                            openTvShowDetails(
+                                tvShow
+                            )
+                        }
+                    }.toList()
+                    adapter.apply { addAll(tvShowList) }
+                }
             }
 
             override fun onFailure(call: Call<TvShowResponse>, t: Throwable) {

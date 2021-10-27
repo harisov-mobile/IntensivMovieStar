@@ -72,22 +72,22 @@ class TvShowDetailsFragment : Fragment() {
                 response: Response<TvShowDetails>
             ) {
                 // Получаем результат
-                val tvShowDetails = response.body()!!
+                response.body()?.let{ tvShowDetails ->
+                    titleTextView.text = tvShowDetails.name
+                    overviewTextView.text = tvShowDetails.overview
 
-                titleTextView.text = tvShowDetails.name
-                overviewTextView.text = tvShowDetails.overview
+                    studioTextView.text = tvShowDetails.productionCompanies.map {
+                            company -> company.name }.joinToString(", ")
 
-                studioTextView.text = tvShowDetails.productionCompanies.map {
-                        company -> company.name }.joinToString(", ")
+                    genreTextView.text = tvShowDetails.genres.map {
+                            genre -> genre.name }.joinToString(", ")
 
-                genreTextView.text = tvShowDetails.genres.map {
-                        genre -> genre.name }.joinToString(", ")
+                    releaseDateTextView.text = tvShowDetails.firstAirDate.substring(0, 4)
 
-                releaseDateTextView.text = tvShowDetails.firstAirDate.substring(0, 4)
+                    movieRating.rating = tvShowDetails.rating
 
-                movieRating.rating = tvShowDetails.rating
-
-                imagePreview.loadImage(tvShowDetails.posterPath)
+                    imagePreview.loadImage(tvShowDetails.posterPath)
+                }
             }
             override fun onFailure(call: Call<TvShowDetails>, t: Throwable) {
                 // Log error here since request failed
@@ -104,12 +104,12 @@ class TvShowDetailsFragment : Fragment() {
                 response: Response<MovieCreditsResponse>
             ) {
                 // Получаем результат
-                val movieCreditsResponse = response.body()!!
-
-                val actorItemList = movieCreditsResponse.cast.map {
-                    ActorItem(it) { actor -> openActorDetails(actor) } // если понадобится открыть фрагмент с описанием актера
-                }.toList()
-                adapter.apply { addAll(actorItemList) }
+                response.body()?.let{ movieCreditsResponse ->
+                    val actorItemList = movieCreditsResponse.cast.map {
+                        ActorItem(it) { actor -> openActorDetails(actor) } // если понадобится открыть фрагмент с описанием актера
+                    }.toList()
+                    adapter.apply { addAll(actorItemList) }
+                }
             }
             override fun onFailure(call: Call<MovieCreditsResponse>, t: Throwable) {
                 // Log error here since request failed
