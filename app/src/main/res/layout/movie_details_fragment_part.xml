@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/blueDark">
 
-    <ImageView
+    <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/image_preview"
         android:layout_width="0dp"
         android:layout_height="150dp"

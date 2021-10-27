@@ -3,9 +3,13 @@ package ru.androidschool.intensiv.ui.feed
 import com.squareup.picasso.Picasso
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import com.xwray.groupie.kotlinandroidextensions.Item
+import kotlinx.android.synthetic.main.item_tv_show.*
 import kotlinx.android.synthetic.main.item_with_text.*
+import kotlinx.android.synthetic.main.item_with_text.description
+import kotlinx.android.synthetic.main.item_with_text.image_preview
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.Movie
+import ru.androidschool.intensiv.ui.loadImage
 
 class MovieItem(
     private val content: Movie,
@@ -22,8 +26,6 @@ class MovieItem(
         }
 
         // TODO Получать из модели
-        Picasso.get()
-            .load(content.posterPath)
-            .into(viewHolder.image_preview)
+        viewHolder.image_preview.loadImage(content.posterPath)
     }
 }

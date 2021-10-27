@@ -5,13 +5,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatRatingBar
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
-import com.squareup.picasso.Picasso
+import com.google.android.material.imageview.ShapeableImageView
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import retrofit2.Call
@@ -25,6 +24,7 @@ import ru.androidschool.intensiv.data.MovieDetails
 import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.feed.ActorItem
 import ru.androidschool.intensiv.ui.feed.FeedFragment
+import ru.androidschool.intensiv.ui.loadImage
 
 class MovieDetailsFragment : Fragment() {
 
@@ -33,7 +33,7 @@ class MovieDetailsFragment : Fragment() {
     private lateinit var studioTextView: TextView
     private lateinit var genreTextView: TextView
     private lateinit var releaseDateTextView: TextView
-    private lateinit var imagePreview: ImageView
+    private lateinit var imagePreview: ShapeableImageView
     private lateinit var movieRating: AppCompatRatingBar
     private lateinit var actorListRecyclerView: RecyclerView
 
@@ -92,9 +92,7 @@ class MovieDetailsFragment : Fragment() {
 
                 movieRating.rating = movieDetails.rating
 
-                Picasso.get()
-                    .load(movieDetails.posterPath)
-                    .into(imagePreview)
+                imagePreview.loadImage(movieDetails.posterPath)
             }
             override fun onFailure(call: Call<MovieDetails>, t: Throwable) {
                 // Log error here since request failed

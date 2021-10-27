@@ -5,13 +5,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatRatingBar
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
-import com.squareup.picasso.Picasso
+import com.google.android.material.imageview.ShapeableImageView
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import retrofit2.Call
@@ -24,6 +23,7 @@ import ru.androidschool.intensiv.data.MovieCreditsResponse
 import ru.androidschool.intensiv.data.TvShowDetails
 import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.feed.ActorItem
+import ru.androidschool.intensiv.ui.loadImage
 
 class TvShowDetailsFragment : Fragment() {
 
@@ -32,7 +32,7 @@ class TvShowDetailsFragment : Fragment() {
     private lateinit var studioTextView: TextView
     private lateinit var genreTextView: TextView
     private lateinit var releaseDateTextView: TextView
-    private lateinit var imagePreview: ImageView
+    private lateinit var imagePreview: ShapeableImageView
     private lateinit var movieRating: AppCompatRatingBar
     private lateinit var actorListRecyclerView: RecyclerView
 
@@ -42,7 +42,7 @@ class TvShowDetailsFragment : Fragment() {
 
         // так как Гугл рекомендовал отказаться от "синтетиков", я сделал по-старому через findViewById
 
-        val view = inflater.inflate(R.layout.movie_details_fragment, container, false)
+        val view = inflater.inflate(R.layout.tv_show_details_fragment, container, false)
 
         titleTextView = view.findViewById(R.id.title_text_view)
         overviewTextView = view.findViewById(R.id.overview_text_view)
@@ -87,9 +87,7 @@ class TvShowDetailsFragment : Fragment() {
 
                 movieRating.rating = tvShowDetails.rating
 
-                Picasso.get()
-                    .load(tvShowDetails.posterPath)
-                    .into(imagePreview)
+                imagePreview.loadImage(tvShowDetails.posterPath)
             }
             override fun onFailure(call: Call<TvShowDetails>, t: Throwable) {
                 // Log error here since request failed
