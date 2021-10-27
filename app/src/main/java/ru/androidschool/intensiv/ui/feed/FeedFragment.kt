@@ -61,19 +61,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
                 // Получаем результат
                 response.body()?.let{ body ->
                     val movieResultList = body.results
-
-                    val moviesList = listOf(
-                        MainCardContainer(
-                            R.string.recommended,
-                            movieResultList.map {
-                                MovieItem(it) { movie ->
-                                    openMovieDetails(
-                                        movie
-                                    )
-                                }
-                            }.toList()
-                        )
-                    )
+                    val moviesList = getMainCardContainerList(R.string.recommended, movieResultList)
                     adapter.apply { addAll(moviesList) }
                 }
             }
@@ -93,19 +81,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
                 // Получаем результат
                 response.body()?.let{ body ->
                     val movieResultList = body.results
-
-                    val moviesList = listOf(
-                        MainCardContainer(
-                            R.string.upcoming,
-                            movieResultList.map {
-                                MovieItem(it) { movie ->
-                                    openMovieDetails(
-                                        movie
-                                    )
-                                }
-                            }.toList()
-                        )
-                    )
+                    val moviesList = getMainCardContainerList(R.string.upcoming, movieResultList)
                     adapter.apply { addAll(moviesList) }
                 }
             }
@@ -140,6 +116,22 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.main_menu, menu)
+    }
+
+    private fun getMainCardContainerList(title: Int, movieResultList: List<Movie>): List<MainCardContainer> {
+        val moviesList = listOf(
+            MainCardContainer(
+                title,
+                movieResultList.map {
+                    MovieItem(it) { movie ->
+                        openMovieDetails(
+                            movie
+                        )
+                    }
+                }
+            )
+        )
+        return moviesList
     }
 
     companion object {
