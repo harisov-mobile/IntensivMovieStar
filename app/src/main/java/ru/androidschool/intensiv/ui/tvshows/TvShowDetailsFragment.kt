@@ -1,7 +1,6 @@
 package ru.androidschool.intensiv.ui.tvshows
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,17 +12,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.imageview.ShapeableImageView
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import ru.androidschool.intensiv.BuildConfig
+import io.reactivex.disposables.CompositeDisposable
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.Actor
-import ru.androidschool.intensiv.data.MovieCreditsResponse
-import ru.androidschool.intensiv.data.TvShowDetails
 import ru.androidschool.intensiv.network.MovieApiClient
+import ru.androidschool.intensiv.ui.addSchedulers
 import ru.androidschool.intensiv.ui.feed.ActorItem
 import ru.androidschool.intensiv.ui.loadImage
+import ru.androidschool.intensiv.utils.LogInfo
 
 class TvShowDetailsFragment : Fragment() {
 
@@ -36,7 +32,11 @@ class TvShowDetailsFragment : Fragment() {
     private lateinit var movieRating: AppCompatRatingBar
     private lateinit var actorListRecyclerView: RecyclerView
 
-    private lateinit var adapter: GroupAdapter<GroupieViewHolder>
+    private val adapter by lazy {
+        GroupAdapter<GroupieViewHolder>()
+    }
+
+    private lateinit var compositeDisposable: CompositeDisposable
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
@@ -61,61 +61,63 @@ class TvShowDetailsFragment : Fragment() {
 
         val tvShowId = requireArguments().getInt(TvShowsFragment.KEY_TV_SHOW_ID)
 
-        adapter = GroupAdapter<GroupieViewHolder>()
         actorListRecyclerView.adapter = adapter
 
-        // Вызываем метод getMovieDetails()
-        val callTvShowDetails = MovieApiClient.apiClient.getTvShowDetails(tvShowId)
-        callTvShowDetails.enqueue(object : Callback<TvShowDetails> {
-            override fun onResponse(
-                call: Call<TvShowDetails>,
-                response: Response<TvShowDetails>
-            ) {
-                // Получаем результат
-                response.body()?.let{ tvShowDetails ->
-                    titleTextView.text = tvShowDetails.name
-                    overviewTextView.text = tvShowDetails.overview
+        compositeDisposable = CompositeDisposable()
 
-                    studioTextView.text = tvShowDetails.productionCompanies.map {
-                            company -> company.name }.joinToString()
+        // Получаем детальную информацию о телесериале
+        val singleTvShowDetails = MovieApiClient.apiClient.getTvShowDetails(tvShowId)
+        val disposableTvShowDetails = singleTvShowDetails
+            .addSchedulers()
+            .subscribe(
+                { // в случае успешного получения данных:
+                    tvShowDetails ->
+                    tvShowDetails?.let { tvShowDetails ->
+                        titleTextView.text = tvShowDetails.name
+                        overviewTextView.text = tvShowDetails.overview
 
-                    genreTextView.text = tvShowDetails.genres.map {
-                            genre -> genre.name }.joinToString()
+                        studioTextView.text = tvShowDetails.productionCompanies.map {
+                                company -> company.name }.joinToString()
 
-                    releaseDateTextView.text = tvShowDetails.firstAirDate.substring(0, 4)
+                        genreTextView.text = tvShowDetails.genres.map {
+                                genre -> genre.name }.joinToString()
 
-                    movieRating.rating = tvShowDetails.rating
+                        releaseDateTextView.text = tvShowDetails.firstAirDate.substring(0, 4)
 
-                    imagePreview.loadImage(tvShowDetails.posterPath)
+                        movieRating.rating = tvShowDetails.rating
+
+                        imagePreview.loadImage(tvShowDetails.posterPath)
+                    }
+                },
+                {
+                    // в случае ошибки
+                    error -> LogInfo.errorInfo(error, "Ошибка при получении NowPlayingMovies")
                 }
-            }
-            override fun onFailure(call: Call<TvShowDetails>, t: Throwable) {
-                // Log error here since request failed
-                Log.e(TAG, t.toString())
-            }
-        })
+            )
 
-        // получаем список актеров из фильма и "приготавливаем" для Groupie
-        // Вызываем метод getMovieDetails()
-        val callTvShowCredits = MovieApiClient.apiClient.getTvShowCredits(tvShowId)
-        callTvShowCredits.enqueue(object : Callback<MovieCreditsResponse> {
-            override fun onResponse(
-                call: Call<MovieCreditsResponse>,
-                response: Response<MovieCreditsResponse>
-            ) {
-                // Получаем результат
-                response.body()?.let{ movieCreditsResponse ->
-                    val actorItemList = movieCreditsResponse.cast.map {
-                        ActorItem(it) { actor -> openActorDetails(actor) } // если понадобится открыть фрагмент с описанием актера
-                    }.toList()
-                    adapter.apply { addAll(actorItemList) }
+        compositeDisposable.add(disposableTvShowDetails)
+
+        // получаем список актеров из телесериала и "приготавливаем" для Groupie
+        val singleTvShowCredits = MovieApiClient.apiClient.getTvShowCredits(tvShowId)
+        val disposableTvShowCredits = singleTvShowCredits
+            .addSchedulers()
+            .subscribe(
+                { // в случае успешного получения данных:
+                    tvShowCreditsResponse ->
+                    tvShowCreditsResponse?.let { tvShowCreditsResponse ->
+                    val actorItemList = tvShowCreditsResponse.cast.map {
+                            ActorItem(it) { actor -> openActorDetails(actor) } // если понадобится открыть фрагмент с описанием актера
+                        }.toList()
+                        adapter.apply { addAll(actorItemList) }
+                    }
+                },
+                {
+                    // в случае ошибки
+                    error -> LogInfo.errorInfo(error, "Ошибка при получении списка актеров")
                 }
-            }
-            override fun onFailure(call: Call<MovieCreditsResponse>, t: Throwable) {
-                // Log error here since request failed
-                Log.e(TAG, t.toString())
-            }
-        })
+            )
+
+        compositeDisposable.add(disposableTvShowCredits)
     }
 
     private fun openActorDetails(actor: Actor) {
@@ -125,9 +127,12 @@ class TvShowDetailsFragment : Fragment() {
         Toast.makeText(context, actor.name, Toast.LENGTH_SHORT).show()
     }
 
-    companion object {
+    override fun onDestroyView() {
+        super.onDestroyView()
+        compositeDisposable.clear() // диспозабл освободить!
+    }
 
+    companion object {
         const val KEY_ACTOR_ID = "actor_id"
-        private const val TAG = "TvShowDetailsFragment"
     }
 }

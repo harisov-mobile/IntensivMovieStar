@@ -1,7 +1,6 @@
 package ru.androidschool.intensiv.ui.movie_details
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,18 +12,15 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.imageview.ShapeableImageView
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import ru.androidschool.intensiv.BuildConfig
+import io.reactivex.disposables.CompositeDisposable
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.Actor
-import ru.androidschool.intensiv.data.MovieCreditsResponse
-import ru.androidschool.intensiv.data.MovieDetails
 import ru.androidschool.intensiv.network.MovieApiClient
+import ru.androidschool.intensiv.ui.addSchedulers
 import ru.androidschool.intensiv.ui.feed.ActorItem
 import ru.androidschool.intensiv.ui.feed.FeedFragment
 import ru.androidschool.intensiv.ui.loadImage
+import ru.androidschool.intensiv.utils.LogInfo
 
 class MovieDetailsFragment : Fragment() {
 
@@ -37,11 +33,11 @@ class MovieDetailsFragment : Fragment() {
     private lateinit var movieRating: AppCompatRatingBar
     private lateinit var actorListRecyclerView: RecyclerView
 
-//    private val adapter by lazy {
-//        GroupAdapter<GroupieViewHolder>()
-//    }
+    private val adapter by lazy {
+        GroupAdapter<GroupieViewHolder>()
+    }
 
-    private lateinit var adapter: GroupAdapter<GroupieViewHolder>
+    private lateinit var compositeDisposable: CompositeDisposable
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
@@ -66,18 +62,18 @@ class MovieDetailsFragment : Fragment() {
 
         val movieId = requireArguments().getInt(FeedFragment.KEY_MOVIE_ID)
 
-        adapter = GroupAdapter<GroupieViewHolder>()
         actorListRecyclerView.adapter = adapter
 
-        // Вызываем метод getMovieDetails()
-        val callMovieDetails = MovieApiClient.apiClient.getMovieDetails(movieId)
-        callMovieDetails.enqueue(object : Callback<MovieDetails> {
-            override fun onResponse(
-                call: Call<MovieDetails>,
-                response: Response<MovieDetails>
-            ) {
-                // Получаем результат
-                response.body()?.let{ movieDetails ->
+        compositeDisposable = CompositeDisposable()
+
+        // Получаем детальную информацию о фильме
+        val singleMovieDetails = MovieApiClient.apiClient.getMovieDetails(movieId)
+        val disposableMovieDetails = singleMovieDetails
+            .addSchedulers()
+            .subscribe(
+                { // в случае успешного получения данных:
+                    movieDetails ->
+                    movieDetails?.let { movieDetails ->
                     titleTextView.text = movieDetails.title
                     overviewTextView.text = movieDetails.overview
 
@@ -92,35 +88,37 @@ class MovieDetailsFragment : Fragment() {
                     movieRating.rating = movieDetails.rating
 
                     imagePreview.loadImage(movieDetails.posterPath)
+                    }
+                },
+                {
+                    // в случае ошибки
+                    error -> LogInfo.errorInfo(error, "Ошибка при получении NowPlayingMovies")
                 }
-            }
-            override fun onFailure(call: Call<MovieDetails>, t: Throwable) {
-                // Log error here since request failed
-                Log.e(TAG, t.toString())
-            }
-        })
+            )
+
+        compositeDisposable.add(disposableMovieDetails)
 
         // получаем список актеров из фильма и "приготавливаем" для Groupie
-        // Вызываем метод getMovieDetails()
-        val callMovieCredits = MovieApiClient.apiClient.getMovieCredits(movieId)
-        callMovieCredits.enqueue(object : Callback<MovieCreditsResponse> {
-            override fun onResponse(
-                call: Call<MovieCreditsResponse>,
-                response: Response<MovieCreditsResponse>
-            ) {
-                // Получаем результат
-                response.body()?.let{ movieCreditsResponse ->
+        val singleMovieCredits = MovieApiClient.apiClient.getMovieCredits(movieId)
+        val disposableMovieCredits = singleMovieCredits
+            .addSchedulers()
+            .subscribe(
+                { // в случае успешного получения данных:
+                    movieCreditsResponse ->
+                    movieCreditsResponse?.let { movieCreditsResponse ->
                     val actorItemList = movieCreditsResponse.cast.map {
                         ActorItem(it) { actor -> openActorDetails(actor) } // если понадобится открыть фрагмент с описанием актера
                     }.toList()
                     adapter.apply { addAll(actorItemList) }
+                    }
+                },
+                {
+                    // в случае ошибки
+                    error -> LogInfo.errorInfo(error, "Ошибка при получении списка актеров")
                 }
-            }
-            override fun onFailure(call: Call<MovieCreditsResponse>, t: Throwable) {
-                // Log error here since request failed
-                Log.e(TAG, t.toString())
-            }
-        })
+            )
+
+        compositeDisposable.add(disposableMovieCredits)
     }
 
     private fun openActorDetails(actor: Actor) {
@@ -128,6 +126,16 @@ class MovieDetailsFragment : Fragment() {
 //        bundle.putString(KEY_ACTOR_ID, actor.id)
 //        findNavController().navigate(R.id.actor_details_fragment, bundle, options)
         Toast.makeText(context, actor.name, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        adapter.clear()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        compositeDisposable.clear() // диспозабл освободить!
     }
 
     companion object {

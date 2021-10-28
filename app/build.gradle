@@ -96,5 +96,6 @@ dependencies {
 
     // RxJava
     implementation "io.reactivex.rxjava2:rxjava:$rootProject.rxJava2JavaVerion"
-    implementation "|io.reactivex.rxjava2:rxandroid:$rootProject.rxJava2AndroidVerion"
+    implementation "io.reactivex.rxjava2:rxandroid:$rootProject.rxJava2AndroidVerion"
+    implementation "com.squareup.retrofit2:adapter-rxjava2:$rootProject.rxJava2AdapterVersion"
 }

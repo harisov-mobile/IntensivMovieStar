@@ -53,4 +53,5 @@ ext {
 
     rxJava2JavaVerion = '2.2.16'
     rxJava2AndroidVerion = '2.1.1'
+    rxJava2AdapterVersion = '2.9.0'
 }
