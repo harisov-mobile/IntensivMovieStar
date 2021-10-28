@@ -6,6 +6,7 @@ import com.xwray.groupie.kotlinandroidextensions.Item
 import kotlinx.android.synthetic.main.item_tv_show.*
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.TvShow
+import ru.androidschool.intensiv.ui.loadImage
 
 class TvShowItem(
     private val content: TvShow,
@@ -21,8 +22,6 @@ class TvShowItem(
         }
 
         // TODO Получать из модели
-        Picasso.get()
-            .load(content.posterPath)
-            .into(viewHolder.image_preview)
+        viewHolder.image_preview.loadImage(content.posterPath)
     }
 }

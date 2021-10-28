@@ -8,11 +8,14 @@ import ru.androidschool.intensiv.BuildConfig
 
 object MovieApiClient {
 
-    private var client: OkHttpClient = OkHttpClient.Builder()
-        .addInterceptor(HttpLoggingInterceptor().apply {
-            this.level = HttpLoggingInterceptor.Level.BODY
-        })
-        .build()
+    private var client: OkHttpClient =
+        if (BuildConfig.DEBUG) {
+            OkHttpClient.Builder()
+                .addInterceptor(HttpLoggingInterceptor().apply { this.level = HttpLoggingInterceptor.Level.BODY })
+                .build()
+        } else {
+            OkHttpClient.Builder().build()
+        }
 
     val apiClient: MovieApiInterface by lazy {
         val retrofit = Retrofit.Builder()

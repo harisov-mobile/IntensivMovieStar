@@ -21,13 +21,22 @@ android {
 
         // чтобы не "светить" Api ключ в публичном гит-хабе
         buildConfigField 'String', 'THE_MOVIE_DATABASE_API', keystoreProperties['THE_MOVIE_DATABASE_API']
-        buildConfigField 'String', 'BASE_URL', keystoreProperties['BASE_URL']
-        buildConfigField 'String', 'IMAGE_URL', keystoreProperties['IMAGE_URL']
     }
     buildTypes {
+        debug {
+            buildConfigField 'String', 'BASE_URL', '"https://api.themoviedb.org/3/"'
+            buildConfigField 'String', 'IMAGE_URL', '"https://image.tmdb.org/t/p/w500"'
+        }
+        staging {
+            buildConfigField 'String', 'BASE_URL', '"https://api.themoviedb.org/3/"'
+            buildConfigField 'String', 'IMAGE_URL', '"https://image.tmdb.org/t/p/w500"'
+        }
+
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField 'String', 'BASE_URL', '"https://api.themoviedb.org/3/"'
+            buildConfigField 'String', 'IMAGE_URL', '"https://image.tmdb.org/t/p/w500"'
         }
     }
 
@@ -81,8 +90,8 @@ dependencies {
     implementation "com.jakewharton.timber:timber:$rootProject.timberVersion"
 
     // Retrofit
-    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
-    implementation 'com.squareup.okhttp3:logging-interceptor:4.7.2'
+    implementation "com.squareup.retrofit2:retrofit:$rootProject.retrofitVersion"
+    implementation "com.squareup.retrofit2:converter-gson:$rootProject.converterGsonVersion"
+    implementation "com.squareup.okhttp3:logging-interceptor:$rootProject.loggingInterCeptorVerion"
 
 }

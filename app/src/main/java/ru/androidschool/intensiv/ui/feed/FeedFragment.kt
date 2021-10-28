@@ -26,11 +26,9 @@ import timber.log.Timber
 
 class FeedFragment : Fragment(R.layout.feed_fragment) {
 
-//    private val adapter by lazy {
-//        GroupAdapter<GroupieViewHolder>()
-//    }
-
-    private lateinit var adapter: GroupAdapter<GroupieViewHolder>
+    private val adapter by lazy {
+        GroupAdapter<GroupieViewHolder>()
+    }
 
     private val options = navOptions {
         anim {
@@ -51,34 +49,21 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
             }
         }
 
-        adapter = GroupAdapter<GroupieViewHolder>() // при клике на фильм и возврате в список
-        // происходило добавление MainCardContainer в адаптер, в результате чего задваивались списки фильмов
-        // не нашел решения для данной проблемы, поэтому просто каждый раз создаю по-новой адаптер
         movies_recycler_view.adapter = adapter
 
         // Вызываем метод getPopularMovies()
-        val callPopularMovies = MovieApiClient.apiClient.getPopularMovies(BuildConfig.THE_MOVIE_DATABASE_API, "ru")
+        val callPopularMovies = MovieApiClient.apiClient.getPopularMovies()
         callPopularMovies.enqueue(object : Callback<MovieResponse> {
             override fun onResponse(
                 call: Call<MovieResponse>,
                 response: Response<MovieResponse>
             ) {
                 // Получаем результат
-                val movieResultList = response.body()!!.results
-
-                val moviesList = listOf(
-                    MainCardContainer(
-                        R.string.recommended,
-                        movieResultList.map {
-                            MovieItem(it) { movie ->
-                                openMovieDetails(
-                                    movie
-                                )
-                            }
-                        }.toList()
-                    )
-                )
-                adapter.apply { addAll(moviesList) }
+                response.body()?.let{ body ->
+                    val movieResultList = body.results
+                    val moviesList = getMainCardContainerList(R.string.recommended, movieResultList)
+                    adapter.apply { addAll(moviesList) }
+                }
             }
             override fun onFailure(call: Call<MovieResponse>, t: Throwable) {
                 // Log error here since request failed
@@ -87,28 +72,18 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
         })
 
         // Вызываем метод getUpcomingMovies()
-        val callUpcomingMovies = MovieApiClient.apiClient.getUpcomingMovies(BuildConfig.THE_MOVIE_DATABASE_API, "ru")
+        val callUpcomingMovies = MovieApiClient.apiClient.getUpcomingMovies()
         callUpcomingMovies.enqueue(object : Callback<MovieResponse> {
             override fun onResponse(
                 call: Call<MovieResponse>,
                 response: Response<MovieResponse>
             ) {
                 // Получаем результат
-                val movieResultList = response.body()!!.results
-
-                val moviesList = listOf(
-                    MainCardContainer(
-                        R.string.upcoming,
-                        movieResultList.map {
-                            MovieItem(it) { movie ->
-                                openMovieDetails(
-                                    movie
-                                )
-                            }
-                        }.toList()
-                    )
-                )
-                adapter.apply { addAll(moviesList) }
+                response.body()?.let{ body ->
+                    val movieResultList = body.results
+                    val moviesList = getMainCardContainerList(R.string.upcoming, movieResultList)
+                    adapter.apply { addAll(moviesList) }
+                }
             }
             override fun onFailure(call: Call<MovieResponse>, t: Throwable) {
                 // Log error here since request failed
@@ -132,10 +107,31 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
     override fun onStop() {
         super.onStop()
         search_toolbar.clear()
+
+        // при клике на фильм и возврате в список
+        // происходило добавление MainCardContainer в адаптер, в результате чего задваивались списки фильмов
+        // поэтому очищаю
+        adapter.clear()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.main_menu, menu)
+    }
+
+    private fun getMainCardContainerList(title: Int, movieResultList: List<Movie>): List<MainCardContainer> {
+        val moviesList = listOf(
+            MainCardContainer(
+                title,
+                movieResultList.map {
+                    MovieItem(it) { movie ->
+                        openMovieDetails(
+                            movie
+                        )
+                    }
+                }
+            )
+        )
+        return moviesList
     }
 
     companion object {

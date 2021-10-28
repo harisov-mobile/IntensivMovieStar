@@ -46,4 +46,9 @@ ext {
     timberVersion = '4.7.1'
 
     groupieVersion = '2.8.0'
+
+    retrofitVersion = '2.9.0'
+    converterGsonVersion = '2.9.0'
+    loggingInterCeptorVerion = '4.7.2'
+
 }

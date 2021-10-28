@@ -5,13 +5,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatRatingBar
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
-import com.squareup.picasso.Picasso
+import com.google.android.material.imageview.ShapeableImageView
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import retrofit2.Call
@@ -25,6 +24,7 @@ import ru.androidschool.intensiv.data.MovieDetails
 import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.feed.ActorItem
 import ru.androidschool.intensiv.ui.feed.FeedFragment
+import ru.androidschool.intensiv.ui.loadImage
 
 class MovieDetailsFragment : Fragment() {
 
@@ -33,7 +33,7 @@ class MovieDetailsFragment : Fragment() {
     private lateinit var studioTextView: TextView
     private lateinit var genreTextView: TextView
     private lateinit var releaseDateTextView: TextView
-    private lateinit var imagePreview: ImageView
+    private lateinit var imagePreview: ShapeableImageView
     private lateinit var movieRating: AppCompatRatingBar
     private lateinit var actorListRecyclerView: RecyclerView
 
@@ -70,31 +70,29 @@ class MovieDetailsFragment : Fragment() {
         actorListRecyclerView.adapter = adapter
 
         // Вызываем метод getMovieDetails()
-        val callMovieDetails = MovieApiClient.apiClient.getMovieDetails(movieId, BuildConfig.THE_MOVIE_DATABASE_API, "ru")
+        val callMovieDetails = MovieApiClient.apiClient.getMovieDetails(movieId)
         callMovieDetails.enqueue(object : Callback<MovieDetails> {
             override fun onResponse(
                 call: Call<MovieDetails>,
                 response: Response<MovieDetails>
             ) {
                 // Получаем результат
-                val movieDetails = response.body()!!
+                response.body()?.let{ movieDetails ->
+                    titleTextView.text = movieDetails.title
+                    overviewTextView.text = movieDetails.overview
 
-                titleTextView.text = movieDetails.title
-                overviewTextView.text = movieDetails.overview
+                    studioTextView.text = movieDetails.productionCompanies.map {
+                            company -> company.name }.joinToString()
 
-                studioTextView.text = movieDetails.productionCompanies.map {
-                        company -> company.name }.joinToString(", ")
+                    genreTextView.text = movieDetails.genres.map {
+                            genre -> genre.name }.joinToString()
 
-                genreTextView.text = movieDetails.genres.map {
-                        genre -> genre.name }.joinToString(", ")
+                    releaseDateTextView.text = movieDetails.releaseDate.substring(0, 4)
 
-                releaseDateTextView.text = movieDetails.releaseDate.substring(0, 4)
+                    movieRating.rating = movieDetails.rating
 
-                movieRating.rating = movieDetails.rating
-
-                Picasso.get()
-                    .load(movieDetails.posterPath)
-                    .into(imagePreview)
+                    imagePreview.loadImage(movieDetails.posterPath)
+                }
             }
             override fun onFailure(call: Call<MovieDetails>, t: Throwable) {
                 // Log error here since request failed
@@ -104,19 +102,19 @@ class MovieDetailsFragment : Fragment() {
 
         // получаем список актеров из фильма и "приготавливаем" для Groupie
         // Вызываем метод getMovieDetails()
-        val callMovieCredits = MovieApiClient.apiClient.getMovieCredits(movieId, BuildConfig.THE_MOVIE_DATABASE_API, "ru")
+        val callMovieCredits = MovieApiClient.apiClient.getMovieCredits(movieId)
         callMovieCredits.enqueue(object : Callback<MovieCreditsResponse> {
             override fun onResponse(
                 call: Call<MovieCreditsResponse>,
                 response: Response<MovieCreditsResponse>
             ) {
                 // Получаем результат
-                val movieCreditsResponse = response.body()!!
-
-                val actorItemList = movieCreditsResponse.cast.map {
-                    ActorItem(it) { actor -> openActorDetails(actor) } // если понадобится открыть фрагмент с описанием актера
-                }.toList()
-                adapter.apply { addAll(actorItemList) }
+                response.body()?.let{ movieCreditsResponse ->
+                    val actorItemList = movieCreditsResponse.cast.map {
+                        ActorItem(it) { actor -> openActorDetails(actor) } // если понадобится открыть фрагмент с описанием актера
+                    }.toList()
+                    adapter.apply { addAll(actorItemList) }
+                }
             }
             override fun onFailure(call: Call<MovieCreditsResponse>, t: Throwable) {
                 // Log error here since request failed
