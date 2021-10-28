@@ -1,4 +1,4 @@
-package ru.androidschool.intensiv.ui.movie_details
+package ru.androidschool.intensiv.ui.tvshows
 
 import android.os.Bundle
 import android.util.Log
@@ -21,12 +21,11 @@ import ru.androidschool.intensiv.BuildConfig
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.Actor
 import ru.androidschool.intensiv.data.MovieCreditsResponse
-import ru.androidschool.intensiv.data.MovieDetails
+import ru.androidschool.intensiv.data.TvShowDetails
 import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.feed.ActorItem
-import ru.androidschool.intensiv.ui.feed.FeedFragment
 
-class MovieDetailsFragment : Fragment() {
+class TvShowDetailsFragment : Fragment() {
 
     private lateinit var titleTextView: TextView
     private lateinit var overviewTextView: TextView
@@ -36,10 +35,6 @@ class MovieDetailsFragment : Fragment() {
     private lateinit var imagePreview: ImageView
     private lateinit var movieRating: AppCompatRatingBar
     private lateinit var actorListRecyclerView: RecyclerView
-
-//    private val adapter by lazy {
-//        GroupAdapter<GroupieViewHolder>()
-//    }
 
     private lateinit var adapter: GroupAdapter<GroupieViewHolder>
 
@@ -64,39 +59,39 @@ class MovieDetailsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val movieId = requireArguments().getInt(FeedFragment.KEY_MOVIE_ID)
+        val tvShowId = requireArguments().getInt(TvShowsFragment.KEY_TV_SHOW_ID)
 
         adapter = GroupAdapter<GroupieViewHolder>()
         actorListRecyclerView.adapter = adapter
 
         // Вызываем метод getMovieDetails()
-        val callMovieDetails = MovieApiClient.apiClient.getMovieDetails(movieId, BuildConfig.THE_MOVIE_DATABASE_API, "ru")
-        callMovieDetails.enqueue(object : Callback<MovieDetails> {
+        val callTvShowDetails = MovieApiClient.apiClient.getTvShowDetails(tvShowId, BuildConfig.THE_MOVIE_DATABASE_API, "ru")
+        callTvShowDetails.enqueue(object : Callback<TvShowDetails> {
             override fun onResponse(
-                call: Call<MovieDetails>,
-                response: Response<MovieDetails>
+                call: Call<TvShowDetails>,
+                response: Response<TvShowDetails>
             ) {
                 // Получаем результат
-                val movieDetails = response.body()!!
+                val tvShowDetails = response.body()!!
 
-                titleTextView.text = movieDetails.title
-                overviewTextView.text = movieDetails.overview
+                titleTextView.text = tvShowDetails.name
+                overviewTextView.text = tvShowDetails.overview
 
-                studioTextView.text = movieDetails.productionCompanies.map {
+                studioTextView.text = tvShowDetails.productionCompanies.map {
                         company -> company.name }.joinToString(", ")
 
-                genreTextView.text = movieDetails.genres.map {
+                genreTextView.text = tvShowDetails.genres.map {
                         genre -> genre.name }.joinToString(", ")
 
-                releaseDateTextView.text = movieDetails.releaseDate.substring(0, 4)
+                releaseDateTextView.text = tvShowDetails.firstAirDate.substring(0, 4)
 
-                movieRating.rating = movieDetails.rating
+                movieRating.rating = tvShowDetails.rating
 
                 Picasso.get()
-                    .load(movieDetails.posterPath)
+                    .load(tvShowDetails.posterPath)
                     .into(imagePreview)
             }
-            override fun onFailure(call: Call<MovieDetails>, t: Throwable) {
+            override fun onFailure(call: Call<TvShowDetails>, t: Throwable) {
                 // Log error here since request failed
                 Log.e(TAG, t.toString())
             }
@@ -104,8 +99,8 @@ class MovieDetailsFragment : Fragment() {
 
         // получаем список актеров из фильма и "приготавливаем" для Groupie
         // Вызываем метод getMovieDetails()
-        val callMovieCredits = MovieApiClient.apiClient.getMovieCredits(movieId, BuildConfig.THE_MOVIE_DATABASE_API, "ru")
-        callMovieCredits.enqueue(object : Callback<MovieCreditsResponse> {
+        val callTvShowCredits = MovieApiClient.apiClient.getTvShowCredits(tvShowId, BuildConfig.THE_MOVIE_DATABASE_API, "ru")
+        callTvShowCredits.enqueue(object : Callback<MovieCreditsResponse> {
             override fun onResponse(
                 call: Call<MovieCreditsResponse>,
                 response: Response<MovieCreditsResponse>
@@ -135,6 +130,6 @@ class MovieDetailsFragment : Fragment() {
     companion object {
 
         const val KEY_ACTOR_ID = "actor_id"
-        private const val TAG = "MovieDetailsFragment"
+        private const val TAG = "TvShowDetailsFragment"
     }
 }

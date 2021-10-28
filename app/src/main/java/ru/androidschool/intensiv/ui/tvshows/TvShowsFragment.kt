@@ -1,6 +1,7 @@
 package ru.androidschool.intensiv.ui.tvshows
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -8,15 +9,22 @@ import androidx.navigation.navOptions
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import kotlinx.android.synthetic.main.tv_shows_fragment.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import ru.androidschool.intensiv.BuildConfig
 import ru.androidschool.intensiv.R
-import ru.androidschool.intensiv.data.MockRepository
 import ru.androidschool.intensiv.data.TvShow
+import ru.androidschool.intensiv.data.TvShowResponse
+import ru.androidschool.intensiv.network.MovieApiClient
 
 class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
 
-    private val adapter by lazy {
-        GroupAdapter<GroupieViewHolder>()
-    }
+//    private val adapter by lazy {
+//        GroupAdapter<GroupieViewHolder>()
+//    }
+
+    private lateinit var adapter: GroupAdapter<GroupieViewHolder>
 
     private val options = navOptions {
         anim {
@@ -30,22 +38,46 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Используя Мок-репозиторий получаем фэйковый список тв-шоу
-        val tvShowList = MockRepository.getTvShows().map {
-                    TvShowItem(it) { tvShow -> openTvShowDetails(tvShow) }
-                }.toList()
+        adapter = GroupAdapter<GroupieViewHolder>() // при клике на телесериал и возврате в список
+        // происходило добавление в адаптер, в результате чего задваивались списки телесериалов
+        // не нашел решения для данной проблемы, поэтому просто каждый раз создаю по-новой адаптер
+        tvshows_recycler_view.adapter = adapter
 
-        tvshows_recycler_view.adapter = adapter.apply { addAll(tvShowList) }
+        // Вызываем метод getPopularTvShows()
+        val callPopularTvShows = MovieApiClient.apiClient.getPopularTvShows(BuildConfig.THE_MOVIE_DATABASE_API, "ru")
+        callPopularTvShows.enqueue(object : Callback<TvShowResponse> {
+            override fun onResponse(
+                call: Call<TvShowResponse>,
+                response: Response<TvShowResponse>
+            ) {
+                // Получаем результат
+                val tvShowResultList = response.body()!!.results
+
+                val tvShowList = tvShowResultList.map {
+                            TvShowItem(it) { tvShow ->
+                                openTvShowDetails(
+                                    tvShow
+                                )
+                            }
+                        }.toList()
+                adapter.apply { addAll(tvShowList) }
+            }
+
+            override fun onFailure(call: Call<TvShowResponse>, t: Throwable) {
+                // Log error here since request failed
+                Log.e(TAG, t.toString())
+            }
+        })
     }
 
     private fun openTvShowDetails(tvShow: TvShow) {
         val bundle = Bundle()
-        bundle.putString(KEY_TITLE, tvShow.title)
-        findNavController().navigate(R.id.movie_details_fragment, bundle, options)
+        bundle.putInt(KEY_TV_SHOW_ID, tvShow.id)
+        findNavController().navigate(R.id.tv_show_details_fragment, bundle, options)
     }
 
     companion object {
-
-        const val KEY_TITLE = "title"
+        const val KEY_TV_SHOW_ID = "tv_show_id"
+        private val TAG = "TvShowsFragment"
     }
 }

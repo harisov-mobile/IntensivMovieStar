@@ -65,4 +65,9 @@
         android:name="ru.androidschool.intensiv.ui.search.SearchFragment"
         android:label="SearchFragment"
         tools:layout="@layout/fragment_search" />
+
+    <fragment
+        android:id="@+id/tv_show_details_fragment"
+        android:name="ru.androidschool.intensiv.ui.tvshows.TvShowDetailsFragment"
+        android:label="TvShowDetailsFragment" />
 </navigation>

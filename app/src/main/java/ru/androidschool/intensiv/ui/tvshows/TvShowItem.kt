@@ -14,7 +14,7 @@ class TvShowItem(
     override fun getLayout() = R.layout.item_tv_show
 
     override fun bind(viewHolder: GroupieViewHolder, position: Int) {
-        viewHolder.description.text = content.title
+        viewHolder.description.text = content.name
         viewHolder.tv_show_rating.rating = content.rating
         viewHolder.item_layout.setOnClickListener {
             onClick.invoke(content)
@@ -22,7 +22,7 @@ class TvShowItem(
 
         // TODO Получать из модели
         Picasso.get()
-            .load("https://m.media-amazon.com/images/M/MV5BYTk3MDljOWQtNGI2My00OTEzLTlhYjQtOTQ4ODM2MzUwY2IwXkEyXkFqcGdeQXVyNTIzOTk5ODM@._V1_.jpg")
+            .load(content.posterPath)
             .into(viewHolder.image_preview)
     }
 }
