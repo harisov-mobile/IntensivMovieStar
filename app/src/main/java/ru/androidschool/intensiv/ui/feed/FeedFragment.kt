@@ -11,7 +11,6 @@ import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.feed_fragment.*
 import kotlinx.android.synthetic.main.feed_header.*
 import kotlinx.android.synthetic.main.search_toolbar.view.*
@@ -20,7 +19,7 @@ import ru.androidschool.intensiv.data.Movie
 import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.addSchedulers
 import ru.androidschool.intensiv.ui.onTextChangedObservable
-import ru.androidschool.intensiv.utils.LogInfo
+import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
 class FeedFragment : Fragment(R.layout.feed_fragment) {
@@ -68,7 +67,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
             },
                 {
                     // в случае ошибки
-                    error -> LogInfo.errorInfo(error, "Ошибка при получении NowPlayingMovies")
+                    error -> Timber.e(error, "Ошибка при получении NowPlayingMovies")
                 }
             )
 
@@ -88,7 +87,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
             },
                 {
                     // в случае ошибки
-                    error -> LogInfo.errorInfo(error, "Ошибка при получении UpcomingMovies")
+                    error -> Timber.e(error, "Ошибка при получении UpcomingMovies")
                 }
             )
 
@@ -108,7 +107,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
             },
                 {
                     // в случае ошибки
-                    error -> LogInfo.errorInfo(error, "Ошибка при получении PopularMovies")
+                    error -> Timber.e(error, "Ошибка при получении PopularMovies")
                 }
             )
 
@@ -179,7 +178,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
                 },
                 {
                     // в случае ошибки
-                    error -> LogInfo.errorInfo(error, "Ошибка при поиске")
+                    error -> Timber.e(error, "Ошибка при поиске")
                 }
             )
 

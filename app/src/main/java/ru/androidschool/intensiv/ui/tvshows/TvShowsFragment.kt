@@ -13,7 +13,7 @@ import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.TvShow
 import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.addSchedulers
-import ru.androidschool.intensiv.utils.LogInfo
+import timber.log.Timber
 
 class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
 
@@ -60,7 +60,7 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
                 },
                 {
                     // в случае ошибки
-                    error -> LogInfo.errorInfo(error, "Ошибка при получении телесериалов")
+                    error -> Timber.e(error, "Ошибка при получении телесериалов")
                 }
             )
 

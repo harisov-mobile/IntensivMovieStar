@@ -19,7 +19,7 @@ import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.addSchedulers
 import ru.androidschool.intensiv.ui.feed.ActorItem
 import ru.androidschool.intensiv.ui.loadImage
-import ru.androidschool.intensiv.utils.LogInfo
+import timber.log.Timber
 
 class TvShowDetailsFragment : Fragment() {
 
@@ -91,7 +91,7 @@ class TvShowDetailsFragment : Fragment() {
                 },
                 {
                     // в случае ошибки
-                    error -> LogInfo.errorInfo(error, "Ошибка при получении NowPlayingMovies")
+                    error -> Timber.e(error, "Ошибка при получении NowPlayingMovies")
                 }
             )
 
@@ -113,7 +113,7 @@ class TvShowDetailsFragment : Fragment() {
                 },
                 {
                     // в случае ошибки
-                    error -> LogInfo.errorInfo(error, "Ошибка при получении списка актеров")
+                    error -> Timber.e(error, "Ошибка при получении списка актеров")
                 }
             )
 

@@ -87,6 +87,7 @@ dependencies {
     implementation "com.xwray:groupie:$rootProject.groupieVersion"
     implementation "com.xwray:groupie-kotlin-android-extensions:$rootProject.groupieVersion"
 
+    // Timber
     implementation "com.jakewharton.timber:timber:$rootProject.timberVersion"
 
     // Retrofit
