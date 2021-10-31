@@ -80,9 +80,9 @@ class TvShowDetailsFragment : Fragment() {
                                 company -> company.name }.joinToString()
 
                         genreTextView.text = tvShowDetails.genres.map {
-                                genre -> genre.name }.joinToString()
+                                it.name }.joinToString()
 
-                        releaseDateTextView.text = tvShowDetails.firstAirDate.substring(0, 4)
+                        releaseDateTextView.text = tvShowDetails.firstAirDate.substring(0, YEAR_SIZE)
 
                         movieRating.rating = tvShowDetails.rating
 
@@ -134,5 +134,6 @@ class TvShowDetailsFragment : Fragment() {
 
     companion object {
         const val KEY_ACTOR_ID = "actor_id"
+        const val YEAR_SIZE = 4
     }
 }
