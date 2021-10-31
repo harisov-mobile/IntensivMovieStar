@@ -43,13 +43,6 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-//        search_toolbar.search_edit_text.afterTextChanged {
-//            Timber.d(it.toString())
-//            if (it.toString().length > MIN_LENGTH) {
-//                openSearch(it.toString())
-//            }
-//        }
-
         compositeDisposable = CompositeDisposable()
 
         trackSearchInput()
@@ -173,18 +166,22 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
 
         val searchDisposable = search_toolbar.search_edit_text
             .onTextChangedObservable()
-            .subscribeOn(Schedulers.io())
+            .addSchedulers()
             .observeOn(AndroidSchedulers.mainThread())
             .map { it.trim() } // удалить все пробелы
             .filter { it.length > MIN_LENGTH } // Длина слова должна быть > 3 символов
-            .debounce(500, TimeUnit.MILLISECONDS) // Отправлять введёное слово не раньше 0.5 секунды с момента окончания ввода
-            .subscribe({
-                openSearch(it.toString())
-            },
+            .debounce(SEARCH_DELAY_MILLISEC, TimeUnit.MILLISECONDS) // Отправлять введёное слово не раньше 0.5 секунды с момента окончания ввода
+            .subscribe(
+                { searchString ->
+                    searchString?.let {
+                        openSearch(searchString)
+                    }
+                },
                 {
-                // в случае ошибки
-                error -> LogInfo.errorInfo(error, "Ошибка при поиске")
-            })
+                    // в случае ошибки
+                    error -> LogInfo.errorInfo(error, "Ошибка при поиске")
+                }
+            )
 
         compositeDisposable.add(searchDisposable)
     }
@@ -193,5 +190,6 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
         const val MIN_LENGTH = 3
         const val KEY_MOVIE_ID = "movie_id"
         const val KEY_SEARCH = "search"
+        const val SEARCH_DELAY_MILLISEC = 500L
     }
 }

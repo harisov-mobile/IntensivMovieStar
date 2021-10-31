@@ -11,9 +11,9 @@ fun EditText.afterTextChanged(action: (s: Editable?) -> Unit) =
     addTextChangedListener(afterTextChanged = action)
 
 fun EditText.onTextChangedObservable(): Observable<String> {
-    return Observable.create(ObservableOnSubscribe<String> { subscriber ->
-        doAfterTextChanged { text ->
-            subscriber.onNext(text.toString())
+    return Observable.create(ObservableOnSubscribe<String> { emitter ->
+        this.doAfterTextChanged { text ->
+            emitter.onNext(text.toString())
         }
     })
 }
