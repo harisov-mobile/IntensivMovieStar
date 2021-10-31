@@ -1,28 +1,27 @@
 package ru.androidschool.intensiv.ui.tvshows
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.navOptions
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
+import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.tv_shows_fragment.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import ru.androidschool.intensiv.BuildConfig
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.TvShow
-import ru.androidschool.intensiv.data.TvShowResponse
 import ru.androidschool.intensiv.network.MovieApiClient
+import ru.androidschool.intensiv.ui.addSchedulers
+import ru.androidschool.intensiv.utils.LogInfo
 
 class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
 
     private val adapter by lazy {
         GroupAdapter<GroupieViewHolder>()
     }
+
+    private lateinit var compositeDisposable: CompositeDisposable
 
     private val options = navOptions {
         anim {
@@ -38,17 +37,17 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
 
         tvshows_recycler_view.adapter = adapter
 
-        // Вызываем метод getPopularTvShows()
-        val callPopularTvShows = MovieApiClient.apiClient.getPopularTvShows()
-        callPopularTvShows.enqueue(object : Callback<TvShowResponse> {
-            override fun onResponse(
-                call: Call<TvShowResponse>,
-                response: Response<TvShowResponse>
-            ) {
-                // Получаем результат
-                response.body()?.let{ body ->
-                    val tvShowResultList = body.results
+        compositeDisposable = CompositeDisposable()
 
+        // Получаем список сериалов
+        val singlePopularTvShows = MovieApiClient.apiClient.getPopularTvShows()
+        val disposablePopularTvShows = singlePopularTvShows
+            .addSchedulers()
+            .subscribe(
+                { // в случае успешного получения данных:
+                    response ->
+                    response?.let { response ->
+                    val tvShowResultList = response.results
                     val tvShowList = tvShowResultList.map {
                         TvShowItem(it) { tvShow ->
                             openTvShowDetails(
@@ -57,14 +56,15 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
                         }
                     }.toList()
                     adapter.apply { addAll(tvShowList) }
+                    }
+                },
+                {
+                    // в случае ошибки
+                    error -> LogInfo.errorInfo(error, "Ошибка при получении телесериалов")
                 }
-            }
+            )
 
-            override fun onFailure(call: Call<TvShowResponse>, t: Throwable) {
-                // Log error here since request failed
-                Log.e(TAG, t.toString())
-            }
-        })
+        compositeDisposable.add(disposablePopularTvShows)
     }
 
     private fun openTvShowDetails(tvShow: TvShow) {
@@ -82,8 +82,12 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
         adapter.clear()
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        compositeDisposable.clear() // диспозабл освободить!
+    }
+
     companion object {
         const val KEY_TV_SHOW_ID = "tv_show_id"
-        private val TAG = "TvShowsFragment"
     }
 }

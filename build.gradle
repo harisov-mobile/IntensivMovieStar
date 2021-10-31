@@ -51,4 +51,7 @@ ext {
     converterGsonVersion = '2.9.0'
     loggingInterCeptorVerion = '4.7.2'
 
+    rxJava2JavaVerion = '2.2.16'
+    rxJava2AndroidVerion = '2.1.1'
+    rxJava2AdapterVersion = '2.9.0'
 }

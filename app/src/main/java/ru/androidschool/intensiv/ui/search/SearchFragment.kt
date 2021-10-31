@@ -2,6 +2,7 @@ package ru.androidschool.intensiv.ui.search
 
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.feed_header.*
 import ru.androidschool.intensiv.R
@@ -13,5 +14,7 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
         super.onViewCreated(view, savedInstanceState)
         val searchTerm = requireArguments().getString(KEY_SEARCH)
         search_toolbar.setText(searchTerm)
+
+        Toast.makeText(context, "ToDo - сделать поиск, переданное слово для поиска $searchTerm", Toast.LENGTH_SHORT).show()
     }
 }
