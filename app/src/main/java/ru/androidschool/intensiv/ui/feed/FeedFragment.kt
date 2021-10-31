@@ -17,7 +17,7 @@ import kotlinx.android.synthetic.main.search_toolbar.view.*
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.Movie
 import ru.androidschool.intensiv.network.MovieApiClient
-import ru.androidschool.intensiv.ui.addSchedulers
+import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.onTextChangedObservable
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
@@ -55,7 +55,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
 
         // Получаем список фильмов для "Рекомендуем"
         val disposableNowPlayingMovies = singleNowPlayingMovies
-            .addSchedulers()
+            .applySchedulers()
             .subscribe(
                 { // в случае успешного получения данных:
                     response ->
@@ -75,7 +75,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
 
         // Получаем список фильмов для "Рекомендуем"
         val disposableUpcomingMovies = singleUpcomingMovies
-            .addSchedulers()
+            .applySchedulers()
             .subscribe(
                 { // в случае успешного получения данных:
                     response ->
@@ -95,7 +95,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
 
         // Получаем список фильмов для "Популярные"
         val disposablePopularMovies = singlePopularMovies
-            .addSchedulers()
+            .applySchedulers()
             .subscribe(
                 { // в случае успешного получения данных:
                     response ->
@@ -165,7 +165,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
 
         val searchDisposable = search_toolbar.search_edit_text
             .onTextChangedObservable()
-            .addSchedulers()
+            .applySchedulers()
             .observeOn(AndroidSchedulers.mainThread())
             .map { it.trim() } // удалить все пробелы
             .filter { it.length > MIN_LENGTH } // Длина слова должна быть > 3 символов

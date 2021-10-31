@@ -12,7 +12,7 @@ import kotlinx.android.synthetic.main.tv_shows_fragment.*
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.TvShow
 import ru.androidschool.intensiv.network.MovieApiClient
-import ru.androidschool.intensiv.ui.addSchedulers
+import ru.androidschool.intensiv.ui.applySchedulers
 import timber.log.Timber
 
 class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
@@ -42,7 +42,7 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
         // Получаем список сериалов
         val singlePopularTvShows = MovieApiClient.apiClient.getPopularTvShows()
         val disposablePopularTvShows = singlePopularTvShows
-            .addSchedulers()
+            .applySchedulers()
             .subscribe(
                 { // в случае успешного получения данных:
                     response ->

@@ -16,7 +16,7 @@ import io.reactivex.disposables.CompositeDisposable
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.Actor
 import ru.androidschool.intensiv.network.MovieApiClient
-import ru.androidschool.intensiv.ui.addSchedulers
+import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.feed.ActorItem
 import ru.androidschool.intensiv.ui.feed.FeedFragment
 import ru.androidschool.intensiv.ui.loadImage
@@ -69,7 +69,7 @@ class MovieDetailsFragment : Fragment() {
         // Получаем детальную информацию о фильме
         val singleMovieDetails = MovieApiClient.apiClient.getMovieDetails(movieId)
         val disposableMovieDetails = singleMovieDetails
-            .addSchedulers()
+            .applySchedulers()
             .subscribe(
                 { // в случае успешного получения данных:
                     movieDetails ->
@@ -101,7 +101,7 @@ class MovieDetailsFragment : Fragment() {
         // получаем список актеров из фильма и "приготавливаем" для Groupie
         val singleMovieCredits = MovieApiClient.apiClient.getMovieCredits(movieId)
         val disposableMovieCredits = singleMovieCredits
-            .addSchedulers()
+            .applySchedulers()
             .subscribe(
                 { // в случае успешного получения данных:
                     movieCreditsResponse ->

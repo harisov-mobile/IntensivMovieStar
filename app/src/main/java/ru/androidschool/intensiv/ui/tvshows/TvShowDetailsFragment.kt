@@ -16,7 +16,7 @@ import io.reactivex.disposables.CompositeDisposable
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.Actor
 import ru.androidschool.intensiv.network.MovieApiClient
-import ru.androidschool.intensiv.ui.addSchedulers
+import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.feed.ActorItem
 import ru.androidschool.intensiv.ui.loadImage
 import timber.log.Timber
@@ -68,7 +68,7 @@ class TvShowDetailsFragment : Fragment() {
         // Получаем детальную информацию о телесериале
         val singleTvShowDetails = MovieApiClient.apiClient.getTvShowDetails(tvShowId)
         val disposableTvShowDetails = singleTvShowDetails
-            .addSchedulers()
+            .applySchedulers()
             .subscribe(
                 { // в случае успешного получения данных:
                     tvShowDetails ->
@@ -100,7 +100,7 @@ class TvShowDetailsFragment : Fragment() {
         // получаем список актеров из телесериала и "приготавливаем" для Groupie
         val singleTvShowCredits = MovieApiClient.apiClient.getTvShowCredits(tvShowId)
         val disposableTvShowCredits = singleTvShowCredits
-            .addSchedulers()
+            .applySchedulers()
             .subscribe(
                 { // в случае успешного получения данных:
                     tvShowCreditsResponse ->
