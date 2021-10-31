@@ -144,7 +144,6 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
         val searchDisposable = search_toolbar.search_edit_text
             .onTextChangedObservable()
             .applySchedulers()
-            .observeOn(AndroidSchedulers.mainThread())
             .map { it.trim() } // удалить все пробелы
             .filter { it.length > MIN_LENGTH } // Длина слова должна быть > 3 символов
             .debounce(SEARCH_DELAY_MILLISEC, TimeUnit.MILLISECONDS) // Отправлять введёное слово не раньше 0.5 секунды с момента окончания ввода

@@ -83,7 +83,9 @@ class MovieDetailsFragment : Fragment() {
                     genreTextView.text = movieDetails.genres.map {
                             genre -> genre.name }.joinToString()
 
-                    releaseDateTextView.text = movieDetails.releaseDate.substring(0, 4)
+                    if (movieDetails.releaseDate.length >= 4) {
+                        releaseDateTextView.text = movieDetails.releaseDate.substring(0, YEAR_SIZE)
+                    }
 
                     movieRating.rating = movieDetails.rating
 
@@ -107,9 +109,9 @@ class MovieDetailsFragment : Fragment() {
                     movieCreditsResponse ->
                     movieCreditsResponse?.let { movieCreditsResponse ->
                     val actorItemList = movieCreditsResponse.cast.map {
-                        ActorItem(it) { actor -> openActorDetails(actor) } // если понадобится открыть фрагмент с описанием актера
-                    }.toList()
-                    adapter.apply { addAll(actorItemList) }
+                            ActorItem(it) { actor -> openActorDetails(actor) } // если понадобится открыть фрагмент с описанием актера
+                        }.toList()
+                        adapter.apply { addAll(actorItemList) }
                     }
                 },
                 {
@@ -142,5 +144,6 @@ class MovieDetailsFragment : Fragment() {
 
         const val KEY_ACTOR_ID = "actor_id"
         private const val TAG = "MovieDetailsFragment"
+        const val YEAR_SIZE = 4
     }
 }
