@@ -62,7 +62,7 @@ interface MovieApiInterface {
     ): Single<MovieCreditsResponse>
 
     @GET("search/movie")
-    fun getSearchedMovies (
+    fun getSearchedMovies(
         @Query("api_key") apiKey: String = BuildConfig.THE_MOVIE_DATABASE_API,
         @Query("language") language: String = REQUIRED_LANGUAGE,
         @Query("query") query: String

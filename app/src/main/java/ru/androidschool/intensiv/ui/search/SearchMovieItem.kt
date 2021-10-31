@@ -5,7 +5,6 @@ import com.xwray.groupie.kotlinandroidextensions.Item
 import kotlinx.android.synthetic.main.item_tv_show.*
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.Movie
-import ru.androidschool.intensiv.data.TvShow
 import ru.androidschool.intensiv.ui.loadImage
 
 class SearchMovieItem(

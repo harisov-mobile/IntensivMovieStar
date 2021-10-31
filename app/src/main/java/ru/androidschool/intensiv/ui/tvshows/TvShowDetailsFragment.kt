@@ -82,7 +82,6 @@ class TvShowDetailsFragment : Fragment() {
                         genreTextView.text = tvShowDetails.genres.map {
                                 it.name }.joinToString()
 
-
                         if (tvShowDetails.firstAirDate.length >= 4) {
                             releaseDateTextView.text = tvShowDetails.firstAirDate.substring(0, YEAR_SIZE)
                         }
