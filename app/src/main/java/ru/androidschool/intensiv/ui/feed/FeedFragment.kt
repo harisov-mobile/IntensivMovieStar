@@ -9,17 +9,23 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.navOptions
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.functions.Function3
 import kotlinx.android.synthetic.main.feed_fragment.*
 import kotlinx.android.synthetic.main.feed_header.*
+import kotlinx.android.synthetic.main.progress_bar.*
 import kotlinx.android.synthetic.main.search_toolbar.view.*
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.Movie
+import ru.androidschool.intensiv.data.MovieResponse
 import ru.androidschool.intensiv.network.MovieApiClient
+import ru.androidschool.intensiv.ui.applyProgressBar
 import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.onTextChangedObservable
 import timber.log.Timber
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 class FeedFragment : Fragment(R.layout.feed_fragment) {
@@ -48,70 +54,42 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
 
         movies_recycler_view.adapter = adapter
 
-        // Получение данных из API:
+        // Получение данных из API и вывод этих данных "одним махом", используя zip:
         val singleNowPlayingMovies = MovieApiClient.apiClient.getNowPlayingMovies()
         val singleUpcomingMovies = MovieApiClient.apiClient.getUpcomingMovies()
         val singlePopularMovies = MovieApiClient.apiClient.getPopularMovies()
 
-        // Получаем список фильмов для "Рекомендуем"
-        val disposableNowPlayingMovies = singleNowPlayingMovies
+        compositeDisposable.add(
+            Single.zip(singleNowPlayingMovies, singleUpcomingMovies, singlePopularMovies,
+            Function3<MovieResponse, MovieResponse, MovieResponse, List<List<MainCardContainer>>> {
+                nowPlayingMoviesResponse, upcomingMoviesResponse, popularMoviesResponse ->
+                var mainCardContainerList = mutableListOf<List<MainCardContainer>>()
+
+                nowPlayingMoviesResponse?.let { response ->
+                    mainCardContainerList.add(getMainCardContainerList(R.string.recommended, response.results))
+                }
+                upcomingMoviesResponse?.let { response ->
+                    mainCardContainerList.add(getMainCardContainerList(R.string.upcoming, response.results))
+                }
+                nowPlayingMoviesResponse?.let { response ->
+                    mainCardContainerList.add(getMainCardContainerList(R.string.popular, response.results))
+                }
+
+                return@Function3 mainCardContainerList
+            })
             .applySchedulers()
+            .applyProgressBar(progress_bar)
             .subscribe(
-                { // в случае успешного получения данных:
-                    response ->
-                    response?.let { response ->
-                        val movieResultList = response.results
-                        val moviesList = getMainCardContainerList(R.string.recommended, movieResultList)
-                        adapter.apply { addAll(moviesList) }
-                    }
-            },
+                {
+                    // это OnNext
+                    mainCardContainerList -> mainCardContainerList.forEach { adapter.apply { addAll(it) } }
+                },
                 {
                     // в случае ошибки
-                    error -> Timber.e(error, "Ошибка при получении NowPlayingMovies")
+                    error -> Timber.e(error, "Ошибка при получении фильмов")
                 }
             )
-
-        compositeDisposable.add(disposableNowPlayingMovies)
-
-        // Получаем список фильмов для "Рекомендуем"
-        val disposableUpcomingMovies = singleUpcomingMovies
-            .applySchedulers()
-            .subscribe(
-                { // в случае успешного получения данных:
-                    response ->
-                    response?.let { response ->
-                        val movieResultList = response.results
-                        val moviesList = getMainCardContainerList(R.string.upcoming, movieResultList)
-                        adapter.apply { addAll(moviesList) }
-                    }
-            },
-                {
-                    // в случае ошибки
-                    error -> Timber.e(error, "Ошибка при получении UpcomingMovies")
-                }
-            )
-
-        compositeDisposable.add(disposableUpcomingMovies)
-
-        // Получаем список фильмов для "Популярные"
-        val disposablePopularMovies = singlePopularMovies
-            .applySchedulers()
-            .subscribe(
-                { // в случае успешного получения данных:
-                    response ->
-                    response?.let { response ->
-                        val movieResultList = response.results
-                        val moviesList = getMainCardContainerList(R.string.popular, movieResultList)
-                        adapter.apply { addAll(moviesList) }
-                    }
-            },
-                {
-                    // в случае ошибки
-                    error -> Timber.e(error, "Ошибка при получении PopularMovies")
-                }
-            )
-
-        compositeDisposable.add(disposablePopularMovies)
+        )
     }
 
     private fun openMovieDetails(movie: Movie) {

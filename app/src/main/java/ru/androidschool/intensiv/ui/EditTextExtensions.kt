@@ -6,7 +6,6 @@ import androidx.core.widget.addTextChangedListener
 import androidx.core.widget.doAfterTextChanged
 import io.reactivex.Observable
 import io.reactivex.ObservableOnSubscribe
-import timber.log.Timber
 
 fun EditText.afterTextChanged(action: (s: Editable?) -> Unit) =
     addTextChangedListener(afterTextChanged = action)
