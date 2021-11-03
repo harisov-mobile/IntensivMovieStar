@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
 
 apply from: "../ktlint.gradle"
 
@@ -99,4 +100,12 @@ dependencies {
     implementation "io.reactivex.rxjava2:rxjava:$rootProject.rxJava2JavaVerion"
     implementation "io.reactivex.rxjava2:rxandroid:$rootProject.rxJava2AndroidVerion"
     implementation "com.squareup.retrofit2:adapter-rxjava2:$rootProject.rxJava2AdapterVersion"
+
+    // Room
+    implementation "androidx.room:room-runtime:$rootProject.roomVersion"
+    kapt "androidx.room:room-compiler:$rootProject.roomVersion"
+
+    // RxJava support for Room
+    implementation "androidx.room:room-rxjava2:$roomVersion"
+
 }
