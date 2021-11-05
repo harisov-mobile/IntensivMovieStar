@@ -19,6 +19,8 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <include layout="@layout/progress_bar" />
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/movies_recycler_view"
                 android:layout_width="match_parent"

@@ -8,12 +8,14 @@ import androidx.navigation.navOptions
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import io.reactivex.disposables.CompositeDisposable
+import kotlinx.android.synthetic.main.progress_bar.*
 import kotlinx.android.synthetic.main.tv_shows_fragment.*
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.TvShow
 import ru.androidschool.intensiv.network.MovieApiClient
-import ru.androidschool.intensiv.ui.addSchedulers
-import ru.androidschool.intensiv.utils.LogInfo
+import ru.androidschool.intensiv.ui.applyProgressBar
+import ru.androidschool.intensiv.ui.applySchedulers
+import timber.log.Timber
 
 class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
 
@@ -42,7 +44,8 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
         // Получаем список сериалов
         val singlePopularTvShows = MovieApiClient.apiClient.getPopularTvShows()
         val disposablePopularTvShows = singlePopularTvShows
-            .addSchedulers()
+            .applySchedulers()
+            .applyProgressBar(progress_bar)
             .subscribe(
                 { // в случае успешного получения данных:
                     response ->
@@ -60,7 +63,7 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
                 },
                 {
                     // в случае ошибки
-                    error -> LogInfo.errorInfo(error, "Ошибка при получении телесериалов")
+                    error -> Timber.e(error, "Ошибка при получении телесериалов")
                 }
             )
 

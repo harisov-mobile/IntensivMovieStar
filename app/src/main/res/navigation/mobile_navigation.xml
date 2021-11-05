@@ -63,8 +63,7 @@
     <fragment
         android:id="@+id/search_dest"
         android:name="ru.androidschool.intensiv.ui.search.SearchFragment"
-        android:label="SearchFragment"
-        tools:layout="@layout/fragment_search" />
+        android:label="SearchFragment" />
 
     <fragment
         android:id="@+id/tv_show_details_fragment"

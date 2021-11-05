@@ -16,11 +16,11 @@ import io.reactivex.disposables.CompositeDisposable
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.Actor
 import ru.androidschool.intensiv.network.MovieApiClient
-import ru.androidschool.intensiv.ui.addSchedulers
+import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.feed.ActorItem
 import ru.androidschool.intensiv.ui.feed.FeedFragment
 import ru.androidschool.intensiv.ui.loadImage
-import ru.androidschool.intensiv.utils.LogInfo
+import timber.log.Timber
 
 class MovieDetailsFragment : Fragment() {
 
@@ -69,7 +69,7 @@ class MovieDetailsFragment : Fragment() {
         // Получаем детальную информацию о фильме
         val singleMovieDetails = MovieApiClient.apiClient.getMovieDetails(movieId)
         val disposableMovieDetails = singleMovieDetails
-            .addSchedulers()
+            .applySchedulers()
             .subscribe(
                 { // в случае успешного получения данных:
                     movieDetails ->
@@ -83,7 +83,9 @@ class MovieDetailsFragment : Fragment() {
                     genreTextView.text = movieDetails.genres.map {
                             genre -> genre.name }.joinToString()
 
-                    releaseDateTextView.text = movieDetails.releaseDate.substring(0, 4)
+                    if (movieDetails.releaseDate.length >= 4) {
+                        releaseDateTextView.text = movieDetails.releaseDate.substring(0, YEAR_SIZE)
+                    }
 
                     movieRating.rating = movieDetails.rating
 
@@ -92,7 +94,7 @@ class MovieDetailsFragment : Fragment() {
                 },
                 {
                     // в случае ошибки
-                    error -> LogInfo.errorInfo(error, "Ошибка при получении NowPlayingMovies")
+                    error -> Timber.e(error, "Ошибка при получении NowPlayingMovies")
                 }
             )
 
@@ -101,20 +103,20 @@ class MovieDetailsFragment : Fragment() {
         // получаем список актеров из фильма и "приготавливаем" для Groupie
         val singleMovieCredits = MovieApiClient.apiClient.getMovieCredits(movieId)
         val disposableMovieCredits = singleMovieCredits
-            .addSchedulers()
+            .applySchedulers()
             .subscribe(
                 { // в случае успешного получения данных:
                     movieCreditsResponse ->
                     movieCreditsResponse?.let { movieCreditsResponse ->
                     val actorItemList = movieCreditsResponse.cast.map {
-                        ActorItem(it) { actor -> openActorDetails(actor) } // если понадобится открыть фрагмент с описанием актера
-                    }.toList()
-                    adapter.apply { addAll(actorItemList) }
+                            ActorItem(it) { actor -> openActorDetails(actor) } // если понадобится открыть фрагмент с описанием актера
+                        }.toList()
+                        adapter.apply { addAll(actorItemList) }
                     }
                 },
                 {
                     // в случае ошибки
-                    error -> LogInfo.errorInfo(error, "Ошибка при получении списка актеров")
+                    error -> Timber.e(error, "Ошибка при получении списка актеров")
                 }
             )
 
@@ -142,5 +144,6 @@ class MovieDetailsFragment : Fragment() {
 
         const val KEY_ACTOR_ID = "actor_id"
         private const val TAG = "MovieDetailsFragment"
+        const val YEAR_SIZE = 4
     }
 }

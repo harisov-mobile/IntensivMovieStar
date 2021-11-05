@@ -16,10 +16,10 @@ import io.reactivex.disposables.CompositeDisposable
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.Actor
 import ru.androidschool.intensiv.network.MovieApiClient
-import ru.androidschool.intensiv.ui.addSchedulers
+import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.feed.ActorItem
 import ru.androidschool.intensiv.ui.loadImage
-import ru.androidschool.intensiv.utils.LogInfo
+import timber.log.Timber
 
 class TvShowDetailsFragment : Fragment() {
 
@@ -68,7 +68,7 @@ class TvShowDetailsFragment : Fragment() {
         // Получаем детальную информацию о телесериале
         val singleTvShowDetails = MovieApiClient.apiClient.getTvShowDetails(tvShowId)
         val disposableTvShowDetails = singleTvShowDetails
-            .addSchedulers()
+            .applySchedulers()
             .subscribe(
                 { // в случае успешного получения данных:
                     tvShowDetails ->
@@ -80,9 +80,11 @@ class TvShowDetailsFragment : Fragment() {
                                 company -> company.name }.joinToString()
 
                         genreTextView.text = tvShowDetails.genres.map {
-                                genre -> genre.name }.joinToString()
+                                it.name }.joinToString()
 
-                        releaseDateTextView.text = tvShowDetails.firstAirDate.substring(0, 4)
+                        if (tvShowDetails.firstAirDate.length >= 4) {
+                            releaseDateTextView.text = tvShowDetails.firstAirDate.substring(0, YEAR_SIZE)
+                        }
 
                         movieRating.rating = tvShowDetails.rating
 
@@ -91,7 +93,7 @@ class TvShowDetailsFragment : Fragment() {
                 },
                 {
                     // в случае ошибки
-                    error -> LogInfo.errorInfo(error, "Ошибка при получении NowPlayingMovies")
+                    error -> Timber.e(error, "Ошибка при получении NowPlayingMovies")
                 }
             )
 
@@ -100,7 +102,7 @@ class TvShowDetailsFragment : Fragment() {
         // получаем список актеров из телесериала и "приготавливаем" для Groupie
         val singleTvShowCredits = MovieApiClient.apiClient.getTvShowCredits(tvShowId)
         val disposableTvShowCredits = singleTvShowCredits
-            .addSchedulers()
+            .applySchedulers()
             .subscribe(
                 { // в случае успешного получения данных:
                     tvShowCreditsResponse ->
@@ -113,7 +115,7 @@ class TvShowDetailsFragment : Fragment() {
                 },
                 {
                     // в случае ошибки
-                    error -> LogInfo.errorInfo(error, "Ошибка при получении списка актеров")
+                    error -> Timber.e(error, "Ошибка при получении списка актеров")
                 }
             )
 
@@ -134,5 +136,6 @@ class TvShowDetailsFragment : Fragment() {
 
     companion object {
         const val KEY_ACTOR_ID = "actor_id"
+        const val YEAR_SIZE = 4
     }
 }

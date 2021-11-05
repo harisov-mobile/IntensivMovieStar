@@ -9,18 +9,22 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.navOptions
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
-import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
+import io.reactivex.functions.Function3
 import kotlinx.android.synthetic.main.feed_fragment.*
 import kotlinx.android.synthetic.main.feed_header.*
+import kotlinx.android.synthetic.main.progress_bar.*
 import kotlinx.android.synthetic.main.search_toolbar.view.*
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.Movie
+import ru.androidschool.intensiv.data.MovieResponse
 import ru.androidschool.intensiv.network.MovieApiClient
-import ru.androidschool.intensiv.ui.addSchedulers
+import ru.androidschool.intensiv.ui.applyProgressBar
+import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.onTextChangedObservable
-import ru.androidschool.intensiv.utils.LogInfo
+import timber.log.Timber
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 class FeedFragment : Fragment(R.layout.feed_fragment) {
@@ -43,83 +47,48 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-//        search_toolbar.search_edit_text.afterTextChanged {
-//            Timber.d(it.toString())
-//            if (it.toString().length > MIN_LENGTH) {
-//                openSearch(it.toString())
-//            }
-//        }
-
         compositeDisposable = CompositeDisposable()
 
         trackSearchInput()
 
         movies_recycler_view.adapter = adapter
 
-        // Получение данных из API:
+        // Получение данных из API и вывод этих данных "одним махом", используя zip:
         val singleNowPlayingMovies = MovieApiClient.apiClient.getNowPlayingMovies()
         val singleUpcomingMovies = MovieApiClient.apiClient.getUpcomingMovies()
         val singlePopularMovies = MovieApiClient.apiClient.getPopularMovies()
 
-        // Получаем список фильмов для "Рекомендуем"
-        val disposableNowPlayingMovies = singleNowPlayingMovies
-            .addSchedulers()
+        compositeDisposable.add(
+            Single.zip(singleNowPlayingMovies, singleUpcomingMovies, singlePopularMovies,
+            Function3<MovieResponse, MovieResponse, MovieResponse, List<List<MainCardContainer>>> {
+                nowPlayingMoviesResponse, upcomingMoviesResponse, popularMoviesResponse ->
+                var mainCardContainerList = mutableListOf<List<MainCardContainer>>()
+
+                nowPlayingMoviesResponse?.let { response ->
+                    mainCardContainerList.add(getMainCardContainerList(R.string.recommended, response.results))
+                }
+                upcomingMoviesResponse?.let { response ->
+                    mainCardContainerList.add(getMainCardContainerList(R.string.upcoming, response.results))
+                }
+                nowPlayingMoviesResponse?.let { response ->
+                    mainCardContainerList.add(getMainCardContainerList(R.string.popular, response.results))
+                }
+
+                return@Function3 mainCardContainerList
+            })
+            .applySchedulers()
+            .applyProgressBar(progress_bar)
             .subscribe(
-                { // в случае успешного получения данных:
-                    response ->
-                    response?.let { response ->
-                        val movieResultList = response.results
-                        val moviesList = getMainCardContainerList(R.string.recommended, movieResultList)
-                        adapter.apply { addAll(moviesList) }
-                    }
-            },
+                {
+                    // это OnNext
+                    mainCardContainerList -> mainCardContainerList.forEach { adapter.apply { addAll(it) } }
+                },
                 {
                     // в случае ошибки
-                    error -> LogInfo.errorInfo(error, "Ошибка при получении NowPlayingMovies")
+                    error -> Timber.e(error, "Ошибка при получении фильмов")
                 }
             )
-
-        compositeDisposable.add(disposableNowPlayingMovies)
-
-        // Получаем список фильмов для "Рекомендуем"
-        val disposableUpcomingMovies = singleUpcomingMovies
-            .addSchedulers()
-            .subscribe(
-                { // в случае успешного получения данных:
-                    response ->
-                    response?.let { response ->
-                        val movieResultList = response.results
-                        val moviesList = getMainCardContainerList(R.string.upcoming, movieResultList)
-                        adapter.apply { addAll(moviesList) }
-                    }
-            },
-                {
-                    // в случае ошибки
-                    error -> LogInfo.errorInfo(error, "Ошибка при получении UpcomingMovies")
-                }
-            )
-
-        compositeDisposable.add(disposableUpcomingMovies)
-
-        // Получаем список фильмов для "Популярные"
-        val disposablePopularMovies = singlePopularMovies
-            .addSchedulers()
-            .subscribe(
-                { // в случае успешного получения данных:
-                    response ->
-                    response?.let { response ->
-                        val movieResultList = response.results
-                        val moviesList = getMainCardContainerList(R.string.popular, movieResultList)
-                        adapter.apply { addAll(moviesList) }
-                    }
-            },
-                {
-                    // в случае ошибки
-                    error -> LogInfo.errorInfo(error, "Ошибка при получении PopularMovies")
-                }
-            )
-
-        compositeDisposable.add(disposablePopularMovies)
+        )
     }
 
     private fun openMovieDetails(movie: Movie) {
@@ -173,18 +142,21 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
 
         val searchDisposable = search_toolbar.search_edit_text
             .onTextChangedObservable()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
+            .applySchedulers()
             .map { it.trim() } // удалить все пробелы
             .filter { it.length > MIN_LENGTH } // Длина слова должна быть > 3 символов
-            .debounce(500, TimeUnit.MILLISECONDS) // Отправлять введёное слово не раньше 0.5 секунды с момента окончания ввода
-            .subscribe({
-                openSearch(it.toString())
-            },
+            .debounce(SEARCH_DELAY_MILLISEC, TimeUnit.MILLISECONDS) // Отправлять введёное слово не раньше 0.5 секунды с момента окончания ввода
+            .subscribe(
+                { searchString ->
+                    searchString?.let {
+                        openSearch(searchString)
+                    }
+                },
                 {
-                // в случае ошибки
-                error -> LogInfo.errorInfo(error, "Ошибка при поиске")
-            })
+                    // в случае ошибки
+                    error -> Timber.e(error, "Ошибка при поиске")
+                }
+            )
 
         compositeDisposable.add(searchDisposable)
     }
@@ -193,5 +165,6 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
         const val MIN_LENGTH = 3
         const val KEY_MOVIE_ID = "movie_id"
         const val KEY_SEARCH = "search"
+        const val SEARCH_DELAY_MILLISEC = 500L
     }
 }
