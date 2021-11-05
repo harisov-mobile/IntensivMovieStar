@@ -20,6 +20,7 @@ import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.feed.ActorItem
 import ru.androidschool.intensiv.ui.feed.FeedFragment
 import ru.androidschool.intensiv.ui.loadImage
+import ru.androidschool.intensiv.utils.Const
 import timber.log.Timber
 
 class MovieDetailsFragment : Fragment() {
@@ -83,8 +84,8 @@ class MovieDetailsFragment : Fragment() {
                     genreTextView.text = movieDetails.genres.map {
                             genre -> genre.name }.joinToString()
 
-                    if (movieDetails.releaseDate.length >= 4) {
-                        releaseDateTextView.text = movieDetails.releaseDate.substring(0, YEAR_SIZE)
+                    if (movieDetails.releaseDate.length >= Const.YEAR_LENGTH) {
+                        releaseDateTextView.text = movieDetails.releaseDate.substring(0, Const.YEAR_LENGTH)
                     }
 
                     movieRating.rating = movieDetails.rating
@@ -94,7 +95,7 @@ class MovieDetailsFragment : Fragment() {
                 },
                 {
                     // в случае ошибки
-                    error -> Timber.e(error, "Ошибка при получении NowPlayingMovies")
+                    error -> Timber.e(error, "Ошибка при получении детальной информации о фильме")
                 }
             )
 
@@ -144,6 +145,5 @@ class MovieDetailsFragment : Fragment() {
 
         const val KEY_ACTOR_ID = "actor_id"
         private const val TAG = "MovieDetailsFragment"
-        const val YEAR_SIZE = 4
     }
 }

@@ -19,6 +19,7 @@ import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.feed.ActorItem
 import ru.androidschool.intensiv.ui.loadImage
+import ru.androidschool.intensiv.utils.Const
 import timber.log.Timber
 
 class TvShowDetailsFragment : Fragment() {
@@ -82,8 +83,8 @@ class TvShowDetailsFragment : Fragment() {
                         genreTextView.text = tvShowDetails.genres.map {
                                 it.name }.joinToString()
 
-                        if (tvShowDetails.firstAirDate.length >= 4) {
-                            releaseDateTextView.text = tvShowDetails.firstAirDate.substring(0, YEAR_SIZE)
+                        if (tvShowDetails.firstAirDate.length >= Const.YEAR_LENGTH) {
+                            releaseDateTextView.text = tvShowDetails.firstAirDate.substring(0, Const.YEAR_LENGTH)
                         }
 
                         movieRating.rating = tvShowDetails.rating
@@ -136,6 +137,5 @@ class TvShowDetailsFragment : Fragment() {
 
     companion object {
         const val KEY_ACTOR_ID = "actor_id"
-        const val YEAR_SIZE = 4
     }
 }
