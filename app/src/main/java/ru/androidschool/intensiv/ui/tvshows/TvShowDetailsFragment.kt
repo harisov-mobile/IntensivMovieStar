@@ -62,6 +62,7 @@ class TvShowDetailsFragment : Fragment() {
 
         val tvShowId = requireArguments().getInt(TvShowsFragment.KEY_TV_SHOW_ID)
 
+        adapter.clear()
         actorListRecyclerView.adapter = adapter
 
         compositeDisposable = CompositeDisposable()
