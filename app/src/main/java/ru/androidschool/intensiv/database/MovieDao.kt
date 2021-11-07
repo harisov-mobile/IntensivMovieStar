@@ -10,7 +10,7 @@ interface MovieDao {
     fun getTvShows(): List<TvShowDBO>
 
     @Query("SELECT * FROM TvShows WHERE id=:id")
-    fun getTvShow(id: Int): TvShowDBO
+    fun getTvShow(id: Int): TvShowDBO?
 
     @Insert
     fun insert(tvShowDBO: TvShowDBO)

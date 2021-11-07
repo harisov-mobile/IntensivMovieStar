@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatRatingBar
@@ -15,11 +16,14 @@ import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import io.reactivex.disposables.CompositeDisposable
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.Actor
+import ru.androidschool.intensiv.data.TvShowDetails
+import ru.androidschool.intensiv.database.MovieDatabase
 import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.feed.ActorItem
 import ru.androidschool.intensiv.ui.loadImage
 import ru.androidschool.intensiv.utils.Const
+import ru.androidschool.intensiv.utils.Converter
 import timber.log.Timber
 
 class TvShowDetailsFragment : Fragment() {
@@ -32,6 +36,9 @@ class TvShowDetailsFragment : Fragment() {
     private lateinit var imagePreview: ShapeableImageView
     private lateinit var movieRating: AppCompatRatingBar
     private lateinit var actorListRecyclerView: RecyclerView
+
+    private lateinit var likeCheckBox: CheckBox
+    private var tvShowDetails: TvShowDetails? = null
 
     private val adapter by lazy {
         GroupAdapter<GroupieViewHolder>()
@@ -54,6 +61,13 @@ class TvShowDetailsFragment : Fragment() {
         movieRating = view.findViewById(R.id.movie_rating)
         actorListRecyclerView = view.findViewById(R.id.actor_list_recycler_view)
 
+        likeCheckBox = view.findViewById(R.id.like_check_box)
+
+        likeCheckBox.setOnCheckedChangeListener {
+            _, isChecked ->
+            onLikeCheckBoxChanged(isChecked)
+        }
+
         return view
     }
 
@@ -73,29 +87,30 @@ class TvShowDetailsFragment : Fragment() {
             .applySchedulers()
             .subscribe(
                 { // в случае успешного получения данных:
-                    tvShowDetails ->
-                    tvShowDetails?.let { tvShowDetails ->
-                        titleTextView.text = tvShowDetails.name
-                        overviewTextView.text = tvShowDetails.overview
+                    tvShowDet ->
+                    tvShowDetails = tvShowDet
+                    tvShowDet?.let { it ->
+                        titleTextView.text = it.name
+                        overviewTextView.text = it.overview
 
-                        studioTextView.text = tvShowDetails.productionCompanies.map {
+                        studioTextView.text = it.productionCompanies.map {
                                 company -> company.name }.joinToString()
 
-                        genreTextView.text = tvShowDetails.genres.map {
+                        genreTextView.text = it.genres.map {
                                 it.name }.joinToString()
 
-                        if (tvShowDetails.firstAirDate.length >= Const.YEAR_LENGTH) {
-                            releaseDateTextView.text = tvShowDetails.firstAirDate.substring(0, Const.YEAR_LENGTH)
+                        if (it.firstAirDate.length >= Const.YEAR_LENGTH) {
+                            releaseDateTextView.text = it.firstAirDate.substring(0, Const.YEAR_LENGTH)
                         }
 
-                        movieRating.rating = tvShowDetails.rating
+                        movieRating.rating = it.rating
 
-                        imagePreview.loadImage(tvShowDetails.posterPath)
+                        imagePreview.loadImage(it.posterPath)
                     }
                 },
                 {
                     // в случае ошибки
-                    error -> Timber.e(error, "Ошибка при получении NowPlayingMovies")
+                    error -> Timber.e(error, "Ошибка при получении TvShowDetails")
                 }
             )
 
@@ -121,6 +136,11 @@ class TvShowDetailsFragment : Fragment() {
                 }
             )
 
+        // считать из БД
+        if (isTvShowLiked(tvShowId)) {
+            likeCheckBox.isChecked = true
+        }
+
         compositeDisposable.add(disposableTvShowCredits)
     }
 
@@ -134,6 +154,24 @@ class TvShowDetailsFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         compositeDisposable.clear() // диспозабл освободить!
+    }
+
+    private fun onLikeCheckBoxChanged(isChecked: Boolean) {
+        tvShowDetails?.let {
+            val movieDao = MovieDatabase.get(requireContext()).movieDao()
+            val tvShowDBO = Converter.toTvShowDBO(it)
+            if (isChecked) {
+                movieDao.insert(tvShowDBO)
+            } else {
+                movieDao.delete(tvShowDBO)
+            }
+        }
+    }
+
+    private fun isTvShowLiked(tvShowId: Int): Boolean {
+        val movieDao = MovieDatabase.get(requireContext()).movieDao()
+        val tvShowDBO = movieDao.getTvShow(tvShowId)
+        return tvShowDBO?.let { true } ?:let { false }
     }
 
     companion object {
