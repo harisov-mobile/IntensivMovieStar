@@ -13,7 +13,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.imageview.ShapeableImageView
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
+import io.reactivex.Scheduler
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.Actor
 import ru.androidschool.intensiv.data.TvShowDetails
@@ -136,12 +139,10 @@ class TvShowDetailsFragment : Fragment() {
                 }
             )
 
-        // считать из БД
-        if (isTvShowLiked(tvShowId)) {
-            likeCheckBox.isChecked = true
-        }
-
         compositeDisposable.add(disposableTvShowCredits)
+
+        // считать из БД
+        setTvShowLiked(tvShowId)
     }
 
     private fun openActorDetails(actor: Actor) {
@@ -161,17 +162,49 @@ class TvShowDetailsFragment : Fragment() {
             val movieDao = MovieDatabase.get(requireContext()).movieDao()
             val tvShowDBO = Converter.toTvShowDBO(it)
             if (isChecked) {
-                movieDao.insert(tvShowDBO)
+                compositeDisposable.add(movieDao.insert(tvShowDBO)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe( {
+                        Toast.makeText(context, "Written as liked", Toast.LENGTH_SHORT).show()
+                    },
+                        {
+                            Toast.makeText(context, "Can not write as liked", Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                )
             } else {
-                movieDao.delete(tvShowDBO)
+                compositeDisposable.add(movieDao.delete(tvShowDBO)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe( {
+                        Toast.makeText(context, "Removed from liked", Toast.LENGTH_SHORT).show()
+                    },
+                        {
+                            Toast.makeText(context, "Can not remove from liked", Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                )
             }
         }
     }
 
-    private fun isTvShowLiked(tvShowId: Int): Boolean {
+    private fun setTvShowLiked(tvShowId: Int) {
+
         val movieDao = MovieDatabase.get(requireContext()).movieDao()
-        val tvShowDBO = movieDao.getTvShow(tvShowId)
-        return tvShowDBO?.let { true } ?:let { false }
+
+        compositeDisposable.add(movieDao.getTvShow(tvShowId)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe( { tvShowDBO ->
+                likeCheckBox.isChecked = tvShowDBO?.let { true } ?:let { false }
+            },
+                {
+                    // в случае ошибки
+                    error -> Timber.e(error, "Ошибка при получении понравившегося телесериала.")
+                }
+            )
+        )
     }
 
     companion object {
