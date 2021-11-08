@@ -1,6 +1,6 @@
 package ru.androidschool.intensiv.utils
 
-import ru.androidschool.intensiv.data.TvShowDBO
+import ru.androidschool.intensiv.data.dbo.TvShowDBO
 import ru.androidschool.intensiv.data.TvShowDetails
 
 class Converter {

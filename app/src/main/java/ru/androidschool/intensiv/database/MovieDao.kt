@@ -3,7 +3,7 @@ package ru.androidschool.intensiv.database
 import androidx.room.*
 import io.reactivex.Completable
 import io.reactivex.Observable
-import ru.androidschool.intensiv.data.TvShowDBO
+import ru.androidschool.intensiv.data.dbo.*
 
 @Dao
 interface MovieDao {
@@ -22,5 +22,31 @@ interface MovieDao {
 
     @Update
     fun update(tvShowDBO: TvShowDBO): Completable
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insert(movie: MovieDBO): Completable
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insert(genre: GenreDBO): Completable
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insert(actor: ActorDBO): Completable
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insert(productionCompany: ProductionCompanyDBO): Completable
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertGenreJoins(joins: List<MovieAndGenreCrossRef>): Completable
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertActorJoins(joins: List<MovieAndActorCrossRef>): Completable
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertProductionCompanyJoins(joins: List<MovieAndProductionCompanyCrossRef>): Completable
+
+    @Transaction
+    @Query("SELECT * FROM movies WHERE movieId = :movieId")
+    fun getMovie(movieId: Int): Observable<MovieAndGenreAndActorAndProductionCompany>
+
 
 }

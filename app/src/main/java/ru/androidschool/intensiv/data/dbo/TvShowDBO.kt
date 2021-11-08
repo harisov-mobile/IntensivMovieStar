@@ -1,4 +1,4 @@
-package ru.androidschool.intensiv.data
+package ru.androidschool.intensiv.data.dbo
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

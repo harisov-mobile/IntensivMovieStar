@@ -4,9 +4,13 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import ru.androidschool.intensiv.data.TvShowDBO
+import ru.androidschool.intensiv.data.dbo.*
 
-@Database(entities = [TvShowDBO::class], version = 1, exportSchema = false)
+@Database(entities = [MovieDBO::class, GenreDBO::class, ActorDBO::class, ProductionCompanyDBO::class,
+    MovieAndGenreCrossRef::class, MovieAndActorCrossRef::class, MovieAndProductionCompanyCrossRef::class,
+    TvShowDBO::class],
+    version = 1,
+    exportSchema = false)
 abstract class MovieDatabase: RoomDatabase() {
 
     abstract fun movieDao(): MovieDao

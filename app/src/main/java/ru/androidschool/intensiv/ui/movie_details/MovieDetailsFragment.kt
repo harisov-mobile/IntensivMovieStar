@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatRatingBar
@@ -15,6 +16,8 @@ import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import io.reactivex.disposables.CompositeDisposable
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.Actor
+import ru.androidschool.intensiv.data.MovieDetails
+import ru.androidschool.intensiv.data.TvShowDetails
 import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.feed.ActorItem
@@ -33,6 +36,10 @@ class MovieDetailsFragment : Fragment() {
     private lateinit var imagePreview: ShapeableImageView
     private lateinit var movieRating: AppCompatRatingBar
     private lateinit var actorListRecyclerView: RecyclerView
+
+    private lateinit var likeCheckBox: CheckBox
+    private var movieDetails: MovieDetails? = null
+
 
     private val adapter by lazy {
         GroupAdapter<GroupieViewHolder>()
@@ -73,24 +80,25 @@ class MovieDetailsFragment : Fragment() {
             .applySchedulers()
             .subscribe(
                 { // в случае успешного получения данных:
-                    movieDetails ->
-                    movieDetails?.let { movieDetails ->
-                    titleTextView.text = movieDetails.title
-                    overviewTextView.text = movieDetails.overview
+                    movieDet ->
+                    movieDetails = movieDet
+                    movieDet?.let { it ->
+                    titleTextView.text = it.title
+                    overviewTextView.text = it.overview
 
-                    studioTextView.text = movieDetails.productionCompanies.map {
+                    studioTextView.text = it.productionCompanies.map {
                             company -> company.name }.joinToString()
 
-                    genreTextView.text = movieDetails.genres.map {
+                    genreTextView.text = it.genres.map {
                             genre -> genre.name }.joinToString()
 
-                    if (movieDetails.releaseDate.length >= Const.YEAR_LENGTH) {
-                        releaseDateTextView.text = movieDetails.releaseDate.substring(0, Const.YEAR_LENGTH)
+                    if (it.releaseDate.length >= Const.YEAR_LENGTH) {
+                        releaseDateTextView.text = it.releaseDate.substring(0, Const.YEAR_LENGTH)
                     }
 
-                    movieRating.rating = movieDetails.rating
+                    movieRating.rating = it.rating
 
-                    imagePreview.loadImage(movieDetails.posterPath)
+                    imagePreview.loadImage(it.posterPath)
                     }
                 },
                 {
