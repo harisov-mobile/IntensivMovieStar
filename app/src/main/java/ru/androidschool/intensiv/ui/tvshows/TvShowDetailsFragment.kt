@@ -108,7 +108,7 @@ class TvShowDetailsFragment : Fragment() {
 
                         movieRating.rating = it.rating
 
-                        imagePreview.loadImage(it.posterPath)
+                        imagePreview.loadImage(it.getPosterPathWithImageUrl())
                     }
                 },
                 {

@@ -29,7 +29,7 @@ class ActorItem(
 
         // TODO Получать из модели
         Picasso.get()
-            .load(content.profilePath)
+            .load(content.getProfilePathWithImageUrl())
             .placeholder(R.drawable.ic_person_placeholder)
             .into(viewHolder.image_preview)
     }

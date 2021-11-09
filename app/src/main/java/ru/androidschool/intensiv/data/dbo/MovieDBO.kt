@@ -16,6 +16,6 @@ data class MovieDBO(
 ) {
     fun getRating(): Float = voteAverage.div(2).toFloat()
 
-    fun getPoster(): String = "${BuildConfig.IMAGE_URL}$posterPath"
+    fun getPosterPathWithImageUrl(): String = "${BuildConfig.IMAGE_URL}$posterPath"
 }
 

@@ -21,6 +21,6 @@ class TvShowItem(
         }
 
         // TODO Получать из модели
-        viewHolder.image_preview.loadImage(content.posterPath)
+        viewHolder.image_preview.loadImage(content.getPosterPathWithImageUrl())
     }
 }
