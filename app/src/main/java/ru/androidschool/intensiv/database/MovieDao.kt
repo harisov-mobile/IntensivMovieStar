@@ -30,10 +30,19 @@ interface MovieDao {
     fun insert(genre: GenreDBO): Completable
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertGenres(genres: List<GenreDBO>): Completable
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(actor: ActorDBO): Completable
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertActors(actors: List<ActorDBO>): Completable
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(productionCompany: ProductionCompanyDBO): Completable
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertProductionCompanies(productionCompanies: List<ProductionCompanyDBO>): Completable
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertGenreJoins(joins: List<MovieAndGenreCrossRef>): Completable

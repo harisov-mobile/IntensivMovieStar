@@ -13,6 +13,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.imageview.ShapeableImageView
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
+import io.reactivex.Completable
+import io.reactivex.Flowable
+import io.reactivex.Maybe
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
@@ -167,17 +171,18 @@ class MovieDetailsFragment : Fragment() {
             val movieDao = MovieDatabase.get(requireContext()).movieDao()
             val movieDBO = Converter.toMovieDBO(it)
             if (isChecked) {
-                compositeDisposable.add(movieDao.insert(movieDBO)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe({
-                        Toast.makeText(context, "Written as liked", Toast.LENGTH_SHORT).show()
-                    },
-                        {
-                            Toast.makeText(context, "Can not write as liked", Toast.LENGTH_SHORT).show()
-                        }
-                    )
-                )
+                saveLikedMovieToDB(it, actorList ?: emptyList(), movieDao)
+//                compositeDisposable.add(movieDao.insert(movieDBO)
+//                    .subscribeOn(Schedulers.io())
+//                    .observeOn(AndroidSchedulers.mainThread())
+//                    .subscribe({
+//                        Toast.makeText(context, "Written as liked", Toast.LENGTH_SHORT).show()
+//                    },
+//                        {
+//                            Toast.makeText(context, "Can not write as liked", Toast.LENGTH_SHORT).show()
+//                        }
+//                    )
+//                )
             } else {
                 compositeDisposable.add(movieDao.delete(movieDBO)
                     .subscribeOn(Schedulers.io())
@@ -211,6 +216,23 @@ class MovieDetailsFragment : Fragment() {
         val movieAndProductionCompanyCrossRefList: List<MovieAndProductionCompanyCrossRef> =
             Converter.toMovieAndProductionCompanyCrossRefList(movieDBO.movieId, productionCompanyDBOList)
 
+        compositeDisposable.add(movieDao.insert(movieDBO)
+            .andThen(movieDao.insertGenres(genreDBOList))
+            .andThen(movieDao.insertActors(actorDBOList))
+            .andThen(movieDao.insertProductionCompanies(productionCompanyDBOList))
+            .andThen(movieDao.insertGenreJoins(movieAndGenreCrossRefList))
+            .andThen(movieDao.insertActorJoins(movieAndActorCrossRefList))
+            .andThen(movieDao.insertProductionCompanyJoins(movieAndProductionCompanyCrossRefList))
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                Toast.makeText(context, "Written this movie as liked", Toast.LENGTH_SHORT).show()
+            },
+                {
+                    Toast.makeText(context, "Can not write this movie as liked", Toast.LENGTH_SHORT).show()
+                }
+            )
+        )
     }
 
     companion object {
