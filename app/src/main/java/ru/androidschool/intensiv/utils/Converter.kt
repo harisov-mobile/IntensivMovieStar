@@ -96,5 +96,12 @@ class Converter {
                 productionCompanyId = productionCompanyId
             )
         }
+
+//        fun toMovie(fullInfo: MovieAndGenreAndActorAndProductionCompany): Movie {
+//            return Movie(
+//                id = fullInfo.movie.movieId,
+//                posterPath = fullInfo.movie.posterPath
+//            )
+//        }
     }
 }

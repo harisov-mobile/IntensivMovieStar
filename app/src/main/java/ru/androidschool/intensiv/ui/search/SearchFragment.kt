@@ -21,6 +21,7 @@ import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.applyProgressBar
 import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.onTextChangedPublishSubject
+import ru.androidschool.intensiv.utils.Const
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
@@ -117,7 +118,7 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
 
     private fun openMovieDetails(movie: Movie) {
         val bundle = Bundle()
-        bundle.putInt(KEY_MOVIE_ID, movie.id)
+        bundle.putInt(Const.KEY_ID, movie.id)
         findNavController().navigate(R.id.movie_details_fragment, bundle, options)
     }
 
@@ -128,7 +129,6 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
 
     companion object {
         const val MIN_LENGTH = 3
-        const val KEY_MOVIE_ID = "movie_id"
         const val KEY_SEARCH = "search"
         const val SEARCH_DELAY_MILLISEC = 500L
     }

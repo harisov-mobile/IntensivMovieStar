@@ -84,7 +84,7 @@ class MovieDetailsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val movieId = requireArguments().getInt(FeedFragment.KEY_MOVIE_ID)
+        val movieId = requireArguments().getInt(Const.KEY_ID)
 
         actorListRecyclerView.adapter = adapter
 
@@ -172,17 +172,6 @@ class MovieDetailsFragment : Fragment() {
             val movieDBO = Converter.toMovieDBO(it)
             if (isChecked) {
                 saveLikedMovieToDB(it, actorList ?: emptyList(), movieDao)
-//                compositeDisposable.add(movieDao.insert(movieDBO)
-//                    .subscribeOn(Schedulers.io())
-//                    .observeOn(AndroidSchedulers.mainThread())
-//                    .subscribe({
-//                        Toast.makeText(context, "Written as liked", Toast.LENGTH_SHORT).show()
-//                    },
-//                        {
-//                            Toast.makeText(context, "Can not write as liked", Toast.LENGTH_SHORT).show()
-//                        }
-//                    )
-//                )
             } else {
                 compositeDisposable.add(movieDao.delete(movieDBO)
                     .subscribeOn(Schedulers.io())

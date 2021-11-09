@@ -77,7 +77,7 @@ class TvShowDetailsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val tvShowId = requireArguments().getInt(TvShowsFragment.KEY_TV_SHOW_ID)
+        val tvShowId = requireArguments().getInt(Const.KEY_ID)
 
         adapter.clear()
         actorListRecyclerView.adapter = adapter
