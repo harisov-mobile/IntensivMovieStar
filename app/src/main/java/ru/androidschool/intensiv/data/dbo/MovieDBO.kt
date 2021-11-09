@@ -12,7 +12,7 @@ data class MovieDBO(
     val overview: String,
     val voteAverage: Double,
     val releaseDate: String,
-    val posterPath: String
+    val posterPath: String? = null
 ) {
     fun getRating(): Float = voteAverage.div(2).toFloat()
 

@@ -44,6 +44,9 @@ interface MovieDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertProductionCompanyJoins(joins: List<MovieAndProductionCompanyCrossRef>): Completable
 
+    @Delete
+    fun delete(movieDBO: MovieDBO): Completable
+
     @Transaction
     @Query("SELECT * FROM movies WHERE movieId = :movieId")
     fun getMovie(movieId: Int): Observable<MovieAndGenreAndActorAndProductionCompany>

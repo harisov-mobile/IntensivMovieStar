@@ -9,7 +9,7 @@ data class ActorDBO(
     @PrimaryKey
     val actorId: Int,
     val name: String,
-    val profilePath: String
+    val profilePath: String? = null
 ) {
     fun getProfile(): String = "${BuildConfig.IMAGE_URL}$profilePath"
 }

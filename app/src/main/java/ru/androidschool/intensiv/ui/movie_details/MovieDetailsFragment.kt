@@ -13,17 +13,23 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.imageview.ShapeableImageView
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.Actor
 import ru.androidschool.intensiv.data.MovieDetails
 import ru.androidschool.intensiv.data.TvShowDetails
+import ru.androidschool.intensiv.data.dbo.*
+import ru.androidschool.intensiv.database.MovieDao
+import ru.androidschool.intensiv.database.MovieDatabase
 import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.feed.ActorItem
 import ru.androidschool.intensiv.ui.feed.FeedFragment
 import ru.androidschool.intensiv.ui.loadImage
 import ru.androidschool.intensiv.utils.Const
+import ru.androidschool.intensiv.utils.Converter
 import timber.log.Timber
 
 class MovieDetailsFragment : Fragment() {
@@ -39,7 +45,7 @@ class MovieDetailsFragment : Fragment() {
 
     private lateinit var likeCheckBox: CheckBox
     private var movieDetails: MovieDetails? = null
-
+    private var actorList: List<Actor>? = null
 
     private val adapter by lazy {
         GroupAdapter<GroupieViewHolder>()
@@ -62,6 +68,12 @@ class MovieDetailsFragment : Fragment() {
         movieRating = view.findViewById(R.id.movie_rating)
         actorListRecyclerView = view.findViewById(R.id.actor_list_recycler_view)
 
+        likeCheckBox = view.findViewById(R.id.like_check_box)
+
+        likeCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            onLikeCheckBoxChanged(isChecked)
+        }
+
         return view
     }
 
@@ -80,30 +92,29 @@ class MovieDetailsFragment : Fragment() {
             .applySchedulers()
             .subscribe(
                 { // в случае успешного получения данных:
-                    movieDet ->
-                    movieDetails = movieDet
+                        movieDet ->
+                    movieDetails = movieDet // сохраню для последующей записи в БД
                     movieDet?.let { it ->
-                    titleTextView.text = it.title
-                    overviewTextView.text = it.overview
+                        titleTextView.text = it.title
+                        overviewTextView.text = it.overview
 
-                    studioTextView.text = it.productionCompanies.map {
-                            company -> company.name }.joinToString()
+                        studioTextView.text = it.productionCompanies.map { company -> company.name }.joinToString()
 
-                    genreTextView.text = it.genres.map {
-                            genre -> genre.name }.joinToString()
+                        genreTextView.text = it.genres.map { genre -> genre.name }.joinToString()
 
-                    if (it.releaseDate.length >= Const.YEAR_LENGTH) {
-                        releaseDateTextView.text = it.releaseDate.substring(0, Const.YEAR_LENGTH)
-                    }
+                        if (it.releaseDate.length >= Const.YEAR_LENGTH) {
+                            releaseDateTextView.text = it.releaseDate.substring(0, Const.YEAR_LENGTH)
+                        }
 
-                    movieRating.rating = it.rating
+                        movieRating.rating = it.rating
 
-                    imagePreview.loadImage(it.posterPath)
+                        imagePreview.loadImage(it.posterPath)
                     }
                 },
                 {
                     // в случае ошибки
-                    error -> Timber.e(error, "Ошибка при получении детальной информации о фильме")
+                        error ->
+                    Timber.e(error, "Ошибка при получении детальной информации о фильме")
                 }
             )
 
@@ -115,9 +126,10 @@ class MovieDetailsFragment : Fragment() {
             .applySchedulers()
             .subscribe(
                 { // в случае успешного получения данных:
-                    movieCreditsResponse ->
+                        movieCreditsResponse ->
                     movieCreditsResponse?.let { movieCreditsResponse ->
-                    val actorItemList = movieCreditsResponse.cast.map {
+                        actorList = movieCreditsResponse.cast // сохраню для последующей записи в БД
+                        val actorItemList = movieCreditsResponse.cast.map {
                             ActorItem(it) { actor -> openActorDetails(actor) } // если понадобится открыть фрагмент с описанием актера
                         }.toList()
                         adapter.apply { addAll(actorItemList) }
@@ -125,7 +137,8 @@ class MovieDetailsFragment : Fragment() {
                 },
                 {
                     // в случае ошибки
-                    error -> Timber.e(error, "Ошибка при получении списка актеров")
+                        error ->
+                    Timber.e(error, "Ошибка при получении списка актеров")
                 }
             )
 
@@ -147,6 +160,57 @@ class MovieDetailsFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         compositeDisposable.clear() // диспозабл освободить!
+    }
+
+    private fun onLikeCheckBoxChanged(isChecked: Boolean) {
+        movieDetails?.let {
+            val movieDao = MovieDatabase.get(requireContext()).movieDao()
+            val movieDBO = Converter.toMovieDBO(it)
+            if (isChecked) {
+                compositeDisposable.add(movieDao.insert(movieDBO)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe({
+                        Toast.makeText(context, "Written as liked", Toast.LENGTH_SHORT).show()
+                    },
+                        {
+                            Toast.makeText(context, "Can not write as liked", Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                )
+            } else {
+                compositeDisposable.add(movieDao.delete(movieDBO)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe({
+                        Toast.makeText(context, "Removed from liked", Toast.LENGTH_SHORT).show()
+                    },
+                        {
+                            Toast.makeText(context, "Can not remove from liked", Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                )
+            }
+        }
+    }
+
+    private fun saveLikedMovieToDB(movieDet: MovieDetails, actors: List<Actor>, movieDao: MovieDao) {
+        val movieDBO = Converter.toMovieDBO(movieDet)
+
+        val genreDBOList: List<GenreDBO> = Converter.toGenreDBOList(movieDet.genres)
+        val actorDBOList: List<ActorDBO> = Converter.toActorDBOList(actors)
+        val productionCompanyDBOList: List<ProductionCompanyDBO> =
+            Converter.toProductionCompanyDBOList(movieDet.productionCompanies)
+
+        val movieAndGenreCrossRefList: List<MovieAndGenreCrossRef> =
+            Converter.toMovieAndGenreCrossRefList(movieDBO.movieId, genreDBOList)
+
+        val movieAndActorCrossRefList: List<MovieAndActorCrossRef> =
+            Converter.toMovieAndActorCrossRefList(movieDBO.movieId, actorDBOList)
+
+        val movieAndProductionCompanyCrossRefList: List<MovieAndProductionCompanyCrossRef> =
+            Converter.toMovieAndProductionCompanyCrossRefList(movieDBO.movieId, productionCompanyDBOList)
+
     }
 
     companion object {
