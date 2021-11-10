@@ -4,9 +4,6 @@ import com.google.gson.annotations.SerializedName
 
 data class MovieResponse(
 
-    @SerializedName("dates")
-    val dates: Dates?,
-
     @SerializedName("page")
     val page: Int,
 

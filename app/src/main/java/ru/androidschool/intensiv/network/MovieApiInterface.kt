@@ -66,7 +66,7 @@ interface MovieApiInterface {
         @Query("api_key") apiKey: String = BuildConfig.THE_MOVIE_DATABASE_API,
         @Query("language") language: String = REQUIRED_LANGUAGE,
         @Query("query") query: String
-    ): Single<SearchResponse>
+    ): Single<MovieResponse>
 
     companion object {
         val REQUIRED_LANGUAGE = "ru-RU"

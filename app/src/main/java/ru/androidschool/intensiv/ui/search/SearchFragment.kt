@@ -17,11 +17,14 @@ import kotlinx.android.synthetic.main.progress_bar.*
 import kotlinx.android.synthetic.main.search_toolbar.*
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.dto.Movie
+import ru.androidschool.intensiv.data.vo.MovieVO
 import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.applyProgressBar
 import ru.androidschool.intensiv.ui.applySchedulers
+import ru.androidschool.intensiv.ui.feed.MovieItem
 import ru.androidschool.intensiv.ui.onTextChangedPublishSubject
 import ru.androidschool.intensiv.utils.Const
+import ru.androidschool.intensiv.utils.Converter
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
@@ -96,17 +99,16 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
             .subscribe(
                 { // в случае успешного получения данных:
                     response ->
-                    response?.let { response ->
-                        val movieResultList = response.results
-                        val movieList = movieResultList.map {
-                            SearchMovieItem(it) { movie ->
+                    val movieResultList = response.results
+                    val movieList = movieResultList.map { movie -> Converter.toMovieVO(movie) }
+                        .map { movieVO ->
+                            MovieItem(movieVO) {
                                 openMovieDetails(
-                                    movie
+                                    it
                                 )
                             }
                         }.toList()
                         adapter.apply { addAll(movieList) }
-                    }
                 },
                 {
                     // в случае ошибки
@@ -116,9 +118,9 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
         compositeDisposable.add(disposableSearchedMovies)
     }
 
-    private fun openMovieDetails(movie: Movie) {
+    private fun openMovieDetails(movieVO: MovieVO) {
         val bundle = Bundle()
-        bundle.putInt(Const.KEY_ID, movie.id)
+        bundle.putInt(Const.KEY_ID, movieVO.id)
         findNavController().navigate(R.id.movie_details_fragment, bundle, options)
     }
 

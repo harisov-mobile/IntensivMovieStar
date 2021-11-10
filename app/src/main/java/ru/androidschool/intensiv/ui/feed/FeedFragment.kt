@@ -125,9 +125,9 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
                 title,
                 movieResultList.map { movie -> Converter.toMovieVO(movie) }
                     .map { movieVO ->
-                    MovieItem(movieVO) { movie ->
+                    MovieItem(movieVO) {
                         openMovieDetails(
-                            movie
+                            it
                         )
                     }
                 }
