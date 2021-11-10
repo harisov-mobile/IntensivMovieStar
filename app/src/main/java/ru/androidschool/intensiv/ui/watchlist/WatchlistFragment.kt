@@ -13,13 +13,10 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_watchlist.*
 import ru.androidschool.intensiv.R
-import ru.androidschool.intensiv.data.Movie
 import ru.androidschool.intensiv.data.dbo.MovieAndGenreAndActorAndProductionCompany
 import ru.androidschool.intensiv.data.dbo.MovieDBO
 import ru.androidschool.intensiv.database.MovieDatabase
-import ru.androidschool.intensiv.ui.feed.FeedFragment
 import ru.androidschool.intensiv.utils.Const
-import ru.androidschool.intensiv.utils.Converter
 import timber.log.Timber
 
 class WatchlistFragment : Fragment(R.layout.fragment_watchlist) {

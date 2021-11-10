@@ -5,7 +5,7 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 import ru.androidschool.intensiv.BuildConfig
-import ru.androidschool.intensiv.data.*
+import ru.androidschool.intensiv.data.dto.*
 
 interface MovieApiInterface {
 

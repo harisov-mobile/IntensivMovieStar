@@ -16,7 +16,7 @@ import kotlinx.android.synthetic.main.fragment_search.*
 import kotlinx.android.synthetic.main.progress_bar.*
 import kotlinx.android.synthetic.main.search_toolbar.*
 import ru.androidschool.intensiv.R
-import ru.androidschool.intensiv.data.Movie
+import ru.androidschool.intensiv.data.dto.Movie
 import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.applyProgressBar
 import ru.androidschool.intensiv.ui.applySchedulers

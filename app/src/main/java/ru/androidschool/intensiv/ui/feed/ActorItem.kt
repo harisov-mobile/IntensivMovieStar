@@ -5,7 +5,7 @@ import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import com.xwray.groupie.kotlinandroidextensions.Item
 import kotlinx.android.synthetic.main.item_actor.*
 import ru.androidschool.intensiv.R
-import ru.androidschool.intensiv.data.Actor
+import ru.androidschool.intensiv.data.dto.Actor
 
 class ActorItem(
     private val content: Actor,

@@ -13,13 +13,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.imageview.ShapeableImageView
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
-import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import ru.androidschool.intensiv.R
-import ru.androidschool.intensiv.data.Actor
-import ru.androidschool.intensiv.data.TvShowDetails
+import ru.androidschool.intensiv.data.dto.Actor
+import ru.androidschool.intensiv.data.dto.TvShowDetails
 import ru.androidschool.intensiv.database.MovieDatabase
 import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.applySchedulers

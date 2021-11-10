@@ -17,8 +17,8 @@ import kotlinx.android.synthetic.main.feed_header.*
 import kotlinx.android.synthetic.main.progress_bar.*
 import kotlinx.android.synthetic.main.search_toolbar.view.*
 import ru.androidschool.intensiv.R
-import ru.androidschool.intensiv.data.Movie
-import ru.androidschool.intensiv.data.MovieResponse
+import ru.androidschool.intensiv.data.dto.Movie
+import ru.androidschool.intensiv.data.dto.MovieResponse
 import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.applyProgressBar
 import ru.androidschool.intensiv.ui.applySchedulers

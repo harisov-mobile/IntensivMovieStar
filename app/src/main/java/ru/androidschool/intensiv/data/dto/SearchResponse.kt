@@ -1,11 +1,8 @@
-package ru.androidschool.intensiv.data
+package ru.androidschool.intensiv.data.dto
 
 import com.google.gson.annotations.SerializedName
 
-data class MovieResponse(
-
-    @SerializedName("dates")
-    val dates: Dates?,
+data class SearchResponse(
 
     @SerializedName("page")
     val page: Int,
@@ -18,4 +15,5 @@ data class MovieResponse(
 
     @SerializedName("total_results")
     val totalResults: Int
+
 )

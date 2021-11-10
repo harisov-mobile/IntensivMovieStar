@@ -1,7 +1,7 @@
 package ru.androidschool.intensiv.utils
 
-import ru.androidschool.intensiv.data.*
 import ru.androidschool.intensiv.data.dbo.*
+import ru.androidschool.intensiv.data.dto.*
 
 class Converter {
 

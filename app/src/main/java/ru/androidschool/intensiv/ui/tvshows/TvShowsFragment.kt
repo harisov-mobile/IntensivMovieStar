@@ -11,7 +11,7 @@ import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.progress_bar.*
 import kotlinx.android.synthetic.main.tv_shows_fragment.*
 import ru.androidschool.intensiv.R
-import ru.androidschool.intensiv.data.TvShow
+import ru.androidschool.intensiv.data.dto.TvShow
 import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.applyProgressBar
 import ru.androidschool.intensiv.ui.applySchedulers

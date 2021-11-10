@@ -1,13 +1,17 @@
-package ru.androidschool.intensiv.data
+package ru.androidschool.intensiv.data.dto
 
 import com.google.gson.annotations.SerializedName
 
-data class TvShowResponse(
+data class MovieResponse(
+
+    @SerializedName("dates")
+    val dates: Dates?,
+
     @SerializedName("page")
     val page: Int,
 
     @SerializedName("results")
-    val results: List<TvShow>,
+    val results: List<Movie>,
 
     @SerializedName("total_pages")
     val totalPages: Int,
