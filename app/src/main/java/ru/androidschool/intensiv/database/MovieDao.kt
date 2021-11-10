@@ -9,6 +9,7 @@ import ru.androidschool.intensiv.utils.ViewFeature
 @Dao
 interface MovieDao {
 
+    // TvShow
     @Query("SELECT * FROM TvShows")
     fun getTvShows(): Observable<List<TvShowDBO>>
 
@@ -24,8 +25,12 @@ interface MovieDao {
     @Update
     fun update(tvShowDBO: TvShowDBO): Completable
 
+    // Movie
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(movie: MovieDBO): Completable
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertMovies(movies: List<MovieDBO>): Completable
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(genre: GenreDBO): Completable
@@ -64,4 +69,7 @@ interface MovieDao {
     @Transaction
     @Query("SELECT * FROM movies WHERE viewFeature = :viewFeature")
     fun getMovies(viewFeature: ViewFeature): Observable<List<MovieAndGenreAndActorAndProductionCompany>>
+
+    @Query("DELETE FROM movies WHERE viewFeature = :viewFeature")
+    fun deleteViewFeaturedMovies(viewFeature: ViewFeature): Completable
 }

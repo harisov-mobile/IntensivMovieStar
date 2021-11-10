@@ -3,7 +3,6 @@ package ru.androidschool.intensiv.ui
 import android.view.View
 import android.widget.ProgressBar
 import io.reactivex.Observable
-import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 

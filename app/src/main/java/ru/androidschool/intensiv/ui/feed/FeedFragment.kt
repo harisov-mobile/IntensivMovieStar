@@ -9,6 +9,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.navOptions
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -21,7 +22,6 @@ import kotlinx.android.synthetic.main.progress_bar.*
 import kotlinx.android.synthetic.main.search_toolbar.view.*
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.dbo.MovieAndGenreAndActorAndProductionCompany
-import ru.androidschool.intensiv.data.dbo.MovieDBO
 import ru.androidschool.intensiv.data.dto.Movie
 import ru.androidschool.intensiv.data.dto.MovieResponse
 import ru.androidschool.intensiv.data.vo.MovieVO
@@ -31,7 +31,6 @@ import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.applyProgressBar
 import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.onTextChangedObservable
-import ru.androidschool.intensiv.ui.watchlist.MoviePreviewItem
 import ru.androidschool.intensiv.utils.Const
 import ru.androidschool.intensiv.utils.MovieFinderAppConverter
 import ru.androidschool.intensiv.utils.ViewFeature
@@ -69,14 +68,29 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
 
         movieDao = MovieDatabase.get(requireContext()).movieDao()
 
-        getOfflineData()
-        getMoviesFromInternet()
+        val completableCallGetOfflineData = Completable.create {
+            getOfflineData()
+            it.onComplete()
+        }
+
+        val completableCallGetMoviesFromInternet = Completable.create {
+            getMoviesFromInternet()
+            it.onComplete()
+        }
+
+        // чтобы "заставить" метод getMoviesFromInternet выполниться строго после того,
+        // как выполнится метод getOfflineData
+        compositeDisposable.add(completableCallGetOfflineData
+            .andThen(completableCallGetMoviesFromInternet)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe())
     }
 
     private fun getOfflineData() {
 
         // Получение данных из БД и вывод этих данных "одним махом", используя zip:
-        val observableNowPlayingMovies = getMoviesFromDB(ViewFeature.NOW_PLAYING)
+        val observableNowPlayingMovies = getMoviesFromDB(ViewFeature.FAVORITE)
         val observableUpcomingMovies = getMoviesFromDB(ViewFeature.UPCOMING)
         val observablePopularMovies = getMoviesFromDB(ViewFeature.POPULAR)
 
@@ -86,7 +100,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
                         nowPlayingMovies, upcomingMovies, popularMovies ->
                     val mainCardContainerList = mutableListOf<List<MainCardContainer>>()
 
-                    mainCardContainerList.add(getMainCardContainerListFromDB(R.string.recommended, nowPlayingMovies, ViewFeature.NOW_PLAYING))
+                    mainCardContainerList.add(getMainCardContainerListFromDB(R.string.recommended, nowPlayingMovies, ViewFeature.FAVORITE))
                     mainCardContainerList.add(getMainCardContainerListFromDB(R.string.upcoming, upcomingMovies, ViewFeature.UPCOMING))
                     mainCardContainerList.add(getMainCardContainerListFromDB(R.string.popular, popularMovies, ViewFeature.POPULAR))
 
@@ -98,6 +112,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
                     {
                         // это OnNext
                         mainCardContainerList ->
+                        adapter.clear()
                         mainCardContainerList.forEach { adapter.apply { addAll(it) } }
                     },
                     {
@@ -107,7 +122,6 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
                 )
         )
     }
-
 
     private fun getMoviesFromInternet() {
         // Получение данных из API и вывод этих данных "одним махом", используя zip:
@@ -122,8 +136,13 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
                     val mainCardContainerList = mutableListOf<List<MainCardContainer>>()
 
                     mainCardContainerList.add(getMainCardContainerListFromApi(R.string.recommended, nowPlayingMoviesResponse.results, ViewFeature.NOW_PLAYING))
+                    saveMovieResultToDB(nowPlayingMoviesResponse.results, ViewFeature.NOW_PLAYING)
+
                     mainCardContainerList.add(getMainCardContainerListFromApi(R.string.upcoming, upcomingMoviesResponse.results, ViewFeature.UPCOMING))
+                    saveMovieResultToDB(upcomingMoviesResponse.results, ViewFeature.UPCOMING)
+
                     mainCardContainerList.add(getMainCardContainerListFromApi(R.string.popular, popularMoviesResponse.results, ViewFeature.POPULAR))
+                    saveMovieResultToDB(popularMoviesResponse.results, ViewFeature.POPULAR)
 
                     return@Function3 mainCardContainerList
                 })
@@ -181,37 +200,44 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
             MainCardContainer(
                 title,
                 movieResultList.map { movie ->
-                    // сохранить в БД - ВОТ ЗДЕСЬ ВОПРОС - В КАКОМ МЕТОДЕ БОЛЕЕ ЭЛЕГАНТНО СОХРАНИТЬ ДАННЫЕ ИЗ ИНТЕРНЕТА В БД?
-                    // ИЛИ ОТДЕЛЬНО ПОСЛЕ СЧИТЫВАНИЯ ИЗ РЕТРОФИТА СОХРАНЯТЬ В БД? НО ТОГДА ФОРМАТ ДАННЫХ НЕ ПОДХОДИТ...
-
-
-
-                    val movieDBO = MovieFinderAppConverter.toMovieDBO(movie, viewFeature)
-
-                    compositeDisposable.add(movieDao.insert(movieDBO)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe({
-                            Timber.i("Информация о фильме сохранена в БД")
-                        },
-                            {
-                                // в случае ошибки
-                                error ->
-                                Timber.e(error, "Ошибка при сохранении информации о фильме в БД.")
-                            }
-                        )
-                    )
                     MovieFinderAppConverter.toMovieVO(movie, viewFeature) }
                     .map { movieVO ->
-                    MovieItem(movieVO) {
-                        openMovieDetails(
-                            it
-                        )
+                        MovieItem(movieVO) {
+                            openMovieDetails(
+                                it
+                            )
+                        }
                     }
-                }
             )
         )
         return moviesList
+    }
+
+    private fun saveMovieResultToDB(movieResultList: List<Movie>, viewFeature: ViewFeature) {
+
+        val completableCallDelete = Completable.create {
+            deleteViewFeaturedMoviesFromDB(viewFeature)
+            it.onComplete()
+        }
+
+        val completableCallInsertMoviesToDB = Completable.create {
+            insertMoviesToDB(movieResultList, viewFeature)
+            it.onComplete()
+        }
+
+        compositeDisposable.add(completableCallDelete
+            .andThen(completableCallInsertMoviesToDB)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe()
+        )
+    }
+
+    private fun insertMoviesToDB(movieResultList: List<Movie>, viewFeature: ViewFeature) {
+        val movieDBOList = movieResultList.map { movie ->
+            MovieFinderAppConverter.toMovieDBO(movie, viewFeature)
+        }
+        movieDao.insertMovies(movieDBOList)
     }
 
     private fun getMainCardContainerListFromDB(title: Int, movieList: List<MovieAndGenreAndActorAndProductionCompany>, viewFeature: ViewFeature): List<MainCardContainer> {
@@ -221,43 +247,6 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
                 title,
                 movieList.map { movie ->
                     MovieFinderAppConverter.toMovieVO(movie.movieDBO, viewFeature) }
-                    .map { movieVO ->
-                    MovieItem(movieVO) {
-                        openMovieDetails(
-                            it
-                        )
-                    }
-                }
-            )
-        )
-        return moviesList
-    }
-
-    private fun getMainCardContainerFromDB(title: Int, movieResultList: List<Movie>, viewFeature: ViewFeature): List<MainCardContainer> {
-
-        val movieDao = MovieDatabase.get(requireContext()).movieDao()
-
-        val moviesList = listOf(
-            MainCardContainer(
-                title,
-                movieResultList.map { movie ->
-                    // сохранить в БД
-                    val movieDBO = MovieFinderAppConverter.toMovieDBO(movie, viewFeature)
-
-                    compositeDisposable.add(movieDao.insert(movieDBO)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe({
-                            Timber.i("Информация о фильме сохранена в БД")
-                        },
-                            {
-                                // в случае ошибки
-                                error ->
-                                Timber.e(error, "Ошибка при сохранении информации о фильме в БД.")
-                            }
-                        )
-                    )
-                    MovieFinderAppConverter.toMovieVO(movie, viewFeature) }
                     .map { movieVO ->
                     MovieItem(movieVO) {
                         openMovieDetails(
@@ -295,6 +284,23 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
 
     private fun getMoviesFromDB(viewFeature: ViewFeature): Observable<List<MovieAndGenreAndActorAndProductionCompany>> {
         return movieDao.getMovies(viewFeature)
+    }
+
+    private fun deleteViewFeaturedMoviesFromDB(viewFeature: ViewFeature) {
+        // удалить записи из БД
+        compositeDisposable.add(movieDao.deleteViewFeaturedMovies(viewFeature)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                Timber.i("Удалена информация о фильмах в БД по ${viewFeature.name}")
+            },
+                {
+                    // в случае ошибки
+                    error ->
+                    Timber.e(error, "Ошибка при удалении информации о фильмах в БД по ${viewFeature.name}")
+                }
+            )
+        )
     }
 
     companion object {
