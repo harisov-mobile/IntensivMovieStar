@@ -69,7 +69,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
 
                 mainCardContainerList.add(getMainCardContainerList(R.string.recommended, nowPlayingMoviesResponse.results))
                 mainCardContainerList.add(getMainCardContainerList(R.string.upcoming, upcomingMoviesResponse.results))
-                mainCardContainerList.add(getMainCardContainerList(R.string.popular, nowPlayingMoviesResponse.results))
+                mainCardContainerList.add(getMainCardContainerList(R.string.popular, popularMoviesResponse.results))
 
                 return@Function3 mainCardContainerList
             })

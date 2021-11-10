@@ -43,15 +43,6 @@ class WatchlistFragment : Fragment(R.layout.fragment_watchlist) {
         movies_recycler_view.layoutManager = GridLayoutManager(context, 4)
         movies_recycler_view.adapter = adapter
 
-//        val moviesList =
-//            MockRepository.getMovies().map {
-//                MoviePreviewItem(
-//                    it
-//                ) { movie -> }
-//            }.toList()
-//
-//        movies_recycler_view.adapter = adapter.apply { addAll(moviesList) }
-
         compositeDisposable = CompositeDisposable()
 
         val movieDao = MovieDatabase.get(requireContext()).movieDao()
