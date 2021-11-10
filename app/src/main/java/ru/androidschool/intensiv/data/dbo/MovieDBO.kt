@@ -3,6 +3,7 @@ package ru.androidschool.intensiv.data.dbo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import ru.androidschool.intensiv.BuildConfig
+import ru.androidschool.intensiv.utils.ViewFeature
 
 @Entity(tableName = "movies")
 data class MovieDBO(
@@ -12,7 +13,8 @@ data class MovieDBO(
     val overview: String,
     val voteAverage: Double,
     val releaseDate: String,
-    val posterPath: String? = null
+    val posterPath: String? = null,
+    val viewFeature: ViewFeature
 ) {
     fun getRating(): Float = voteAverage.div(2).toFloat()
 
