@@ -17,6 +17,7 @@ import ru.androidschool.intensiv.data.dbo.MovieAndGenreAndActorAndProductionComp
 import ru.androidschool.intensiv.data.dbo.MovieDBO
 import ru.androidschool.intensiv.database.MovieDatabase
 import ru.androidschool.intensiv.utils.Const
+import ru.androidschool.intensiv.utils.ViewFeature
 import timber.log.Timber
 
 class WatchlistFragment : Fragment(R.layout.fragment_watchlist) {
@@ -45,14 +46,18 @@ class WatchlistFragment : Fragment(R.layout.fragment_watchlist) {
 
         compositeDisposable = CompositeDisposable()
 
+        getFavoriteMoviesFromDB()
+    }
+
+    private fun getFavoriteMoviesFromDB() {
         val movieDao = MovieDatabase.get(requireContext()).movieDao()
 
-        compositeDisposable.add(movieDao.getMovies()
+        compositeDisposable.add(movieDao.getMovies(ViewFeature.FAVORITE)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({ movies: List<MovieAndGenreAndActorAndProductionCompany> ->
                 val movieItemList = movies.map {
-                    val movie = it.movie
+                    val movie = it.movieDBO
                     MoviePreviewItem(movie) { movie ->
                         openMovieDetails(movie)
                     }
@@ -61,7 +66,7 @@ class WatchlistFragment : Fragment(R.layout.fragment_watchlist) {
             },
                 {
                     // в случае ошибки
-                    error -> Timber.e(error, "Ошибка при получении понравившегося телесериала.")
+                        error -> Timber.e(error, "Ошибка при получении понравившегося телесериала.")
                 }
             )
         )

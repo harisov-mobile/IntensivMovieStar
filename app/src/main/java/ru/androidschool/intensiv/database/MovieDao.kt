@@ -4,6 +4,7 @@ import androidx.room.*
 import io.reactivex.Completable
 import io.reactivex.Observable
 import ru.androidschool.intensiv.data.dbo.*
+import ru.androidschool.intensiv.utils.ViewFeature
 
 @Dao
 interface MovieDao {
@@ -61,6 +62,6 @@ interface MovieDao {
     fun getMovie(movieId: Int): Observable<MovieAndGenreAndActorAndProductionCompany>
 
     @Transaction
-    @Query("SELECT * FROM movies")
-    fun getMovies(): Observable<List<MovieAndGenreAndActorAndProductionCompany>>
+    @Query("SELECT * FROM movies WHERE viewFeature = :viewFeature")
+    fun getMovies(viewFeature: ViewFeature): Observable<List<MovieAndGenreAndActorAndProductionCompany>>
 }

@@ -6,7 +6,7 @@ import androidx.room.Relation
 
 data class MovieAndGenreAndActorAndProductionCompany(
     @Embedded
-    val movie: MovieDBO,
+    val movieDBO: MovieDBO,
 
     @Relation(
         parentColumn = "movieId",

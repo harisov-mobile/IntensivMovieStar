@@ -126,5 +126,21 @@ class MovieFinderAppConverter {
                 viewFeature = viewFeature
             )
         }
+
+        fun toMovieVO(movieDBO: MovieDBO, viewFeature: ViewFeature): MovieVO {
+            // из БД MovieDBO преобразуем в вью-объект MovieVO
+            return MovieVO(
+                id = movieDBO.movieId,
+                title = movieDBO.title,
+                rating = movieDBO.getRating(),
+                posterPath = movieDBO.posterPath,
+                overview = movieDBO.overview,
+                productionCompanies = emptyList(),
+                genres = emptyList(),
+                releaseDate = movieDBO.releaseDate,
+                actors = emptyList(),
+                viewFeature = viewFeature
+            )
+        }
     }
 }

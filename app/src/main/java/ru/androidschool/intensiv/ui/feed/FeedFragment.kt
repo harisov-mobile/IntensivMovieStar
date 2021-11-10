@@ -9,6 +9,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.navOptions
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
+import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -19,14 +20,18 @@ import kotlinx.android.synthetic.main.feed_header.*
 import kotlinx.android.synthetic.main.progress_bar.*
 import kotlinx.android.synthetic.main.search_toolbar.view.*
 import ru.androidschool.intensiv.R
+import ru.androidschool.intensiv.data.dbo.MovieAndGenreAndActorAndProductionCompany
+import ru.androidschool.intensiv.data.dbo.MovieDBO
 import ru.androidschool.intensiv.data.dto.Movie
 import ru.androidschool.intensiv.data.dto.MovieResponse
 import ru.androidschool.intensiv.data.vo.MovieVO
+import ru.androidschool.intensiv.database.MovieDao
 import ru.androidschool.intensiv.database.MovieDatabase
 import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.applyProgressBar
 import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.onTextChangedObservable
+import ru.androidschool.intensiv.ui.watchlist.MoviePreviewItem
 import ru.androidschool.intensiv.utils.Const
 import ru.androidschool.intensiv.utils.MovieFinderAppConverter
 import ru.androidschool.intensiv.utils.ViewFeature
@@ -41,6 +46,8 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
     }
 
     private lateinit var compositeDisposable: CompositeDisposable
+
+    private lateinit var movieDao: MovieDao
 
     private val options = navOptions {
         anim {
@@ -60,6 +67,49 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
 
         movies_recycler_view.adapter = adapter
 
+        movieDao = MovieDatabase.get(requireContext()).movieDao()
+
+        getOfflineData()
+        getMoviesFromInternet()
+    }
+
+    private fun getOfflineData() {
+
+        // Получение данных из БД и вывод этих данных "одним махом", используя zip:
+        val observableNowPlayingMovies = getMoviesFromDB(ViewFeature.NOW_PLAYING)
+        val observableUpcomingMovies = getMoviesFromDB(ViewFeature.UPCOMING)
+        val observablePopularMovies = getMoviesFromDB(ViewFeature.POPULAR)
+
+        compositeDisposable.add(
+            Observable.zip(observableNowPlayingMovies, observableUpcomingMovies, observablePopularMovies,
+                Function3<List<MovieAndGenreAndActorAndProductionCompany>, List<MovieAndGenreAndActorAndProductionCompany>, List<MovieAndGenreAndActorAndProductionCompany>, List<List<MainCardContainer>>> {
+                        nowPlayingMovies, upcomingMovies, popularMovies ->
+                    val mainCardContainerList = mutableListOf<List<MainCardContainer>>()
+
+                    mainCardContainerList.add(getMainCardContainerListFromDB(R.string.recommended, nowPlayingMovies, ViewFeature.NOW_PLAYING))
+                    mainCardContainerList.add(getMainCardContainerListFromDB(R.string.upcoming, upcomingMovies, ViewFeature.UPCOMING))
+                    mainCardContainerList.add(getMainCardContainerListFromDB(R.string.popular, popularMovies, ViewFeature.POPULAR))
+
+                    return@Function3 mainCardContainerList
+                })
+                .applySchedulers()
+                .applyProgressBar(progress_bar)
+                .subscribe(
+                    {
+                        // это OnNext
+                        mainCardContainerList ->
+                        mainCardContainerList.forEach { adapter.apply { addAll(it) } }
+                    },
+                    {
+                        // в случае ошибки
+                        error -> Timber.e(error, "Ошибка при получении фильмов")
+                    }
+                )
+        )
+    }
+
+
+    private fun getMoviesFromInternet() {
         // Получение данных из API и вывод этих данных "одним махом", используя zip:
         val singleNowPlayingMovies = MovieApiClient.apiClient.getNowPlayingMovies()
         val singleUpcomingMovies = MovieApiClient.apiClient.getUpcomingMovies()
@@ -67,28 +117,30 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
 
         compositeDisposable.add(
             Single.zip(singleNowPlayingMovies, singleUpcomingMovies, singlePopularMovies,
-            Function3<MovieResponse, MovieResponse, MovieResponse, List<List<MainCardContainer>>> {
-                nowPlayingMoviesResponse, upcomingMoviesResponse, popularMoviesResponse ->
-                val mainCardContainerList = mutableListOf<List<MainCardContainer>>()
+                Function3<MovieResponse, MovieResponse, MovieResponse, List<List<MainCardContainer>>> {
+                        nowPlayingMoviesResponse, upcomingMoviesResponse, popularMoviesResponse ->
+                    val mainCardContainerList = mutableListOf<List<MainCardContainer>>()
 
-                mainCardContainerList.add(getMainCardContainerList(R.string.recommended, nowPlayingMoviesResponse.results, ViewFeature.NOW_PLAYING))
-                mainCardContainerList.add(getMainCardContainerList(R.string.upcoming, upcomingMoviesResponse.results, ViewFeature.UPCOMING))
-                mainCardContainerList.add(getMainCardContainerList(R.string.popular, popularMoviesResponse.results, ViewFeature.POPULAR))
+                    mainCardContainerList.add(getMainCardContainerListFromApi(R.string.recommended, nowPlayingMoviesResponse.results, ViewFeature.NOW_PLAYING))
+                    mainCardContainerList.add(getMainCardContainerListFromApi(R.string.upcoming, upcomingMoviesResponse.results, ViewFeature.UPCOMING))
+                    mainCardContainerList.add(getMainCardContainerListFromApi(R.string.popular, popularMoviesResponse.results, ViewFeature.POPULAR))
 
-                return@Function3 mainCardContainerList
-            })
-            .applySchedulers()
-            .applyProgressBar(progress_bar)
-            .subscribe(
-                {
-                    // это OnNext
-                    mainCardContainerList -> mainCardContainerList.forEach { adapter.apply { addAll(it) } }
-                },
-                {
-                    // в случае ошибки
-                    error -> Timber.e(error, "Ошибка при получении фильмов")
-                }
-            )
+                    return@Function3 mainCardContainerList
+                })
+                .applySchedulers()
+                .applyProgressBar(progress_bar)
+                .subscribe(
+                    {
+                        // это OnNext
+                        mainCardContainerList ->
+                        adapter.clear() // так как данные из интернета успешно получены, можно очистить адаптер от данных, которые получили из БД
+                        mainCardContainerList.forEach { adapter.apply { addAll(it) } }
+                    },
+                    {
+                        // в случае ошибки
+                        error -> Timber.e(error, "Ошибка при получении фильмов")
+                    }
+                )
         )
     }
 
@@ -123,7 +175,65 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
         inflater.inflate(R.menu.main_menu, menu)
     }
 
-    private fun getMainCardContainerList(title: Int, movieResultList: List<Movie>, viewFeature: ViewFeature): List<MainCardContainer> {
+    private fun getMainCardContainerListFromApi(title: Int, movieResultList: List<Movie>, viewFeature: ViewFeature): List<MainCardContainer> {
+
+        val moviesList = listOf(
+            MainCardContainer(
+                title,
+                movieResultList.map { movie ->
+                    // сохранить в БД - ВОТ ЗДЕСЬ ВОПРОС - В КАКОМ МЕТОДЕ БОЛЕЕ ЭЛЕГАНТНО СОХРАНИТЬ ДАННЫЕ ИЗ ИНТЕРНЕТА В БД?
+                    // ИЛИ ОТДЕЛЬНО ПОСЛЕ СЧИТЫВАНИЯ ИЗ РЕТРОФИТА СОХРАНЯТЬ В БД? НО ТОГДА ФОРМАТ ДАННЫХ НЕ ПОДХОДИТ...
+
+
+
+                    val movieDBO = MovieFinderAppConverter.toMovieDBO(movie, viewFeature)
+
+                    compositeDisposable.add(movieDao.insert(movieDBO)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe({
+                            Timber.i("Информация о фильме сохранена в БД")
+                        },
+                            {
+                                // в случае ошибки
+                                error ->
+                                Timber.e(error, "Ошибка при сохранении информации о фильме в БД.")
+                            }
+                        )
+                    )
+                    MovieFinderAppConverter.toMovieVO(movie, viewFeature) }
+                    .map { movieVO ->
+                    MovieItem(movieVO) {
+                        openMovieDetails(
+                            it
+                        )
+                    }
+                }
+            )
+        )
+        return moviesList
+    }
+
+    private fun getMainCardContainerListFromDB(title: Int, movieList: List<MovieAndGenreAndActorAndProductionCompany>, viewFeature: ViewFeature): List<MainCardContainer> {
+
+        val moviesList = listOf(
+            MainCardContainer(
+                title,
+                movieList.map { movie ->
+                    MovieFinderAppConverter.toMovieVO(movie.movieDBO, viewFeature) }
+                    .map { movieVO ->
+                    MovieItem(movieVO) {
+                        openMovieDetails(
+                            it
+                        )
+                    }
+                }
+            )
+        )
+        return moviesList
+    }
+
+    private fun getMainCardContainerFromDB(title: Int, movieResultList: List<Movie>, viewFeature: ViewFeature): List<MainCardContainer> {
 
         val movieDao = MovieDatabase.get(requireContext()).movieDao()
 
@@ -181,6 +291,10 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
             )
 
         compositeDisposable.add(searchDisposable)
+    }
+
+    private fun getMoviesFromDB(viewFeature: ViewFeature): Observable<List<MovieAndGenreAndActorAndProductionCompany>> {
+        return movieDao.getMovies(viewFeature)
     }
 
     companion object {
