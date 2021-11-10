@@ -1,9 +1,11 @@
 package ru.androidschool.intensiv.ui.feed
 
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.View
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.navOptions
@@ -60,6 +62,8 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        Log.i("rustam", "rustam onViewCreated")
+
         compositeDisposable = CompositeDisposable()
 
         trackSearchInput()
@@ -89,8 +93,10 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
 
     private fun getOfflineData() {
 
+        Log.i("rustam", "rustam getOfflineData")
+
         // Получение данных из БД и вывод этих данных "одним махом", используя zip:
-        val observableNowPlayingMovies = getMoviesFromDB(ViewFeature.FAVORITE)
+        val observableNowPlayingMovies = getMoviesFromDB(ViewFeature.NOW_PLAYING)
         val observableUpcomingMovies = getMoviesFromDB(ViewFeature.UPCOMING)
         val observablePopularMovies = getMoviesFromDB(ViewFeature.POPULAR)
 
@@ -100,7 +106,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
                         nowPlayingMovies, upcomingMovies, popularMovies ->
                     val mainCardContainerList = mutableListOf<List<MainCardContainer>>()
 
-                    mainCardContainerList.add(getMainCardContainerListFromDB(R.string.recommended, nowPlayingMovies, ViewFeature.FAVORITE))
+                    mainCardContainerList.add(getMainCardContainerListFromDB(R.string.recommended, nowPlayingMovies, ViewFeature.NOW_PLAYING))
                     mainCardContainerList.add(getMainCardContainerListFromDB(R.string.upcoming, upcomingMovies, ViewFeature.UPCOMING))
                     mainCardContainerList.add(getMainCardContainerListFromDB(R.string.popular, popularMovies, ViewFeature.POPULAR))
 
@@ -215,6 +221,8 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
 
     private fun saveMovieResultToDB(movieResultList: List<Movie>, viewFeature: ViewFeature) {
 
+        Log.i("rustam", "rustam saveMovieResultToDB")
+
         val completableCallDelete = Completable.create {
             deleteViewFeaturedMoviesFromDB(viewFeature)
             it.onComplete()
@@ -229,7 +237,11 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
             .andThen(completableCallInsertMoviesToDB)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe()
+            .subscribe({
+                Log.i("rustam", "rustam Успешно Закончилась saveMovieResultToDB")
+            }, {
+                Log.i("rustam", "rustam С Ошибкой закончилась saveMovieResultToDB")
+            })
         )
     }
 
@@ -237,7 +249,18 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
         val movieDBOList = movieResultList.map { movie ->
             MovieFinderAppConverter.toMovieDBO(movie, viewFeature)
         }
-        movieDao.insertMovies(movieDBOList)
+
+        compositeDisposable.add(movieDao.insertMovies(movieDBOList)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                Log.i("rustam", "rustam insertMoviesToDB - добавлены записи в БД по ${viewFeature.name}")
+            },
+                {
+                    Log.i("rustam", "rustam ошибка")
+                }
+            )
+        )
     }
 
     private fun getMainCardContainerListFromDB(title: Int, movieList: List<MovieAndGenreAndActorAndProductionCompany>, viewFeature: ViewFeature): List<MainCardContainer> {
@@ -288,19 +311,8 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
 
     private fun deleteViewFeaturedMoviesFromDB(viewFeature: ViewFeature) {
         // удалить записи из БД
-        compositeDisposable.add(movieDao.deleteViewFeaturedMovies(viewFeature)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                Timber.i("Удалена информация о фильмах в БД по ${viewFeature.name}")
-            },
-                {
-                    // в случае ошибки
-                    error ->
-                    Timber.e(error, "Ошибка при удалении информации о фильмах в БД по ${viewFeature.name}")
-                }
-            )
-        )
+        //movieDao.deleteViewFeaturedMovies(viewFeature)
+        Log.i("rustam", "rustam Удалена информация о фильмах в БД по ${viewFeature.name}")
     }
 
     companion object {
