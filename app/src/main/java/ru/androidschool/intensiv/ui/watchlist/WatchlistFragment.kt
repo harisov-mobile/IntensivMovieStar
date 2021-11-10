@@ -50,7 +50,7 @@ class WatchlistFragment : Fragment(R.layout.fragment_watchlist) {
         compositeDisposable.add(movieDao.getMovies()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe( { movies: List<MovieAndGenreAndActorAndProductionCompany> ->
+            .subscribe({ movies: List<MovieAndGenreAndActorAndProductionCompany> ->
                 val movieItemList = movies.map {
                     val movie = it.movie
                     MoviePreviewItem(movie) { movie ->

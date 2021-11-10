@@ -1,13 +1,11 @@
 package ru.androidschool.intensiv.data.dbo
 
 import androidx.room.Entity
-import androidx.room.PrimaryKey
 import ru.androidschool.intensiv.BuildConfig
 import ru.androidschool.intensiv.utils.ViewFeature
 
-@Entity(tableName = "movies")
+@Entity(tableName = "movies", primaryKeys = ["movieId", "viewFeature"])
 data class MovieDBO(
-    @PrimaryKey
     val movieId: Int,
     val title: String,
     val overview: String,
@@ -20,4 +18,3 @@ data class MovieDBO(
 
     fun getPosterPathWithImageUrl(): String = "${BuildConfig.IMAGE_URL}$posterPath"
 }
-

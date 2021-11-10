@@ -10,8 +10,10 @@ import androidx.navigation.navOptions
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import io.reactivex.Single
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.functions.Function3
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.feed_fragment.*
 import kotlinx.android.synthetic.main.feed_header.*
 import kotlinx.android.synthetic.main.progress_bar.*
@@ -20,12 +22,14 @@ import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.dto.Movie
 import ru.androidschool.intensiv.data.dto.MovieResponse
 import ru.androidschool.intensiv.data.vo.MovieVO
+import ru.androidschool.intensiv.database.MovieDatabase
 import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.applyProgressBar
 import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.onTextChangedObservable
 import ru.androidschool.intensiv.utils.Const
-import ru.androidschool.intensiv.utils.Converter
+import ru.androidschool.intensiv.utils.MovieFinderAppConverter
+import ru.androidschool.intensiv.utils.ViewFeature
 import timber.log.Timber
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -67,9 +71,9 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
                 nowPlayingMoviesResponse, upcomingMoviesResponse, popularMoviesResponse ->
                 val mainCardContainerList = mutableListOf<List<MainCardContainer>>()
 
-                mainCardContainerList.add(getMainCardContainerList(R.string.recommended, nowPlayingMoviesResponse.results))
-                mainCardContainerList.add(getMainCardContainerList(R.string.upcoming, upcomingMoviesResponse.results))
-                mainCardContainerList.add(getMainCardContainerList(R.string.popular, popularMoviesResponse.results))
+                mainCardContainerList.add(getMainCardContainerList(R.string.recommended, nowPlayingMoviesResponse.results, ViewFeature.NOW_PLAYING))
+                mainCardContainerList.add(getMainCardContainerList(R.string.upcoming, upcomingMoviesResponse.results, ViewFeature.UPCOMING))
+                mainCardContainerList.add(getMainCardContainerList(R.string.popular, popularMoviesResponse.results, ViewFeature.POPULAR))
 
                 return@Function3 mainCardContainerList
             })
@@ -119,11 +123,31 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
         inflater.inflate(R.menu.main_menu, menu)
     }
 
-    private fun getMainCardContainerList(title: Int, movieResultList: List<Movie>): List<MainCardContainer> {
+    private fun getMainCardContainerList(title: Int, movieResultList: List<Movie>, viewFeature: ViewFeature): List<MainCardContainer> {
+
+        val movieDao = MovieDatabase.get(requireContext()).movieDao()
+
         val moviesList = listOf(
             MainCardContainer(
                 title,
-                movieResultList.map { movie -> Converter.toMovieVO(movie) }
+                movieResultList.map { movie ->
+                    // сохранить в БД
+                    val movieDBO = MovieFinderAppConverter.toMovieDBO(movie, viewFeature)
+
+                    compositeDisposable.add(movieDao.insert(movieDBO)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe({
+                            Timber.i("Информация о фильме сохранена в БД")
+                        },
+                            {
+                                // в случае ошибки
+                                error ->
+                                Timber.e(error, "Ошибка при сохранении информации о фильме в БД.")
+                            }
+                        )
+                    )
+                    MovieFinderAppConverter.toMovieVO(movie, viewFeature) }
                     .map { movieVO ->
                     MovieItem(movieVO) {
                         openMovieDetails(

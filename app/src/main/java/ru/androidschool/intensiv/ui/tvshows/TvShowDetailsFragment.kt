@@ -25,7 +25,7 @@ import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.feed.ActorItem
 import ru.androidschool.intensiv.ui.loadImage
 import ru.androidschool.intensiv.utils.Const
-import ru.androidschool.intensiv.utils.Converter
+import ru.androidschool.intensiv.utils.MovieFinderAppConverter
 import timber.log.Timber
 
 class TvShowDetailsFragment : Fragment() {
@@ -159,12 +159,12 @@ class TvShowDetailsFragment : Fragment() {
     private fun onLikeCheckBoxChanged(isChecked: Boolean) {
         tvShowDetails?.let {
             val movieDao = MovieDatabase.get(requireContext()).movieDao()
-            val tvShowDBO = Converter.toTvShowDBO(it)
+            val tvShowDBO = MovieFinderAppConverter.toTvShowDBO(it)
             if (isChecked) {
                 compositeDisposable.add(movieDao.insert(tvShowDBO)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe( {
+                    .subscribe({
                         Toast.makeText(context, "Written as liked", Toast.LENGTH_SHORT).show()
                     },
                         {
@@ -176,7 +176,7 @@ class TvShowDetailsFragment : Fragment() {
                 compositeDisposable.add(movieDao.delete(tvShowDBO)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe( {
+                    .subscribe({
                         Toast.makeText(context, "Removed from liked", Toast.LENGTH_SHORT).show()
                     },
                         {
@@ -195,8 +195,8 @@ class TvShowDetailsFragment : Fragment() {
         compositeDisposable.add(movieDao.getTvShow(tvShowId)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe( { tvShowDBO ->
-                likeCheckBox.isChecked = tvShowDBO?.let { true } ?:let { false }
+            .subscribe({ tvShowDBO ->
+                likeCheckBox.isChecked = tvShowDBO?.let { true } ?: let { false }
             },
                 {
                     // в случае ошибки

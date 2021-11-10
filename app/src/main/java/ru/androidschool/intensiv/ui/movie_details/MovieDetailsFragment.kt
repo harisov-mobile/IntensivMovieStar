@@ -27,7 +27,8 @@ import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.feed.ActorItem
 import ru.androidschool.intensiv.ui.loadImage
 import ru.androidschool.intensiv.utils.Const
-import ru.androidschool.intensiv.utils.Converter
+import ru.androidschool.intensiv.utils.MovieFinderAppConverter
+import ru.androidschool.intensiv.utils.ViewFeature
 import timber.log.Timber
 
 class MovieDetailsFragment : Fragment() {
@@ -163,10 +164,11 @@ class MovieDetailsFragment : Fragment() {
     private fun onLikeCheckBoxChanged(isChecked: Boolean) {
         movieDetails?.let {
             val movieDao = MovieDatabase.get(requireContext()).movieDao()
-            val movieDBO = Converter.toMovieDBO(it)
+
             if (isChecked) {
                 saveLikedMovieToDB(it, actorList ?: emptyList(), movieDao)
             } else {
+                val movieDBO = MovieFinderAppConverter.toMovieDBO(it, ViewFeature.FAVORITE)
                 compositeDisposable.add(movieDao.delete(movieDBO)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
@@ -183,21 +185,21 @@ class MovieDetailsFragment : Fragment() {
     }
 
     private fun saveLikedMovieToDB(movieDet: MovieDetails, actors: List<Actor>, movieDao: MovieDao) {
-        val movieDBO = Converter.toMovieDBO(movieDet)
+        val movieDBO = MovieFinderAppConverter.toMovieDBO(movieDet, ViewFeature.FAVORITE)
 
-        val genreDBOList: List<GenreDBO> = Converter.toGenreDBOList(movieDet.genres)
-        val actorDBOList: List<ActorDBO> = Converter.toActorDBOList(actors)
+        val genreDBOList: List<GenreDBO> = MovieFinderAppConverter.toGenreDBOList(movieDet.genres)
+        val actorDBOList: List<ActorDBO> = MovieFinderAppConverter.toActorDBOList(actors)
         val productionCompanyDBOList: List<ProductionCompanyDBO> =
-            Converter.toProductionCompanyDBOList(movieDet.productionCompanies)
+            MovieFinderAppConverter.toProductionCompanyDBOList(movieDet.productionCompanies)
 
         val movieAndGenreCrossRefList: List<MovieAndGenreCrossRef> =
-            Converter.toMovieAndGenreCrossRefList(movieDBO.movieId, genreDBOList)
+            MovieFinderAppConverter.toMovieAndGenreCrossRefList(movieDBO.movieId, genreDBOList)
 
         val movieAndActorCrossRefList: List<MovieAndActorCrossRef> =
-            Converter.toMovieAndActorCrossRefList(movieDBO.movieId, actorDBOList)
+            MovieFinderAppConverter.toMovieAndActorCrossRefList(movieDBO.movieId, actorDBOList)
 
         val movieAndProductionCompanyCrossRefList: List<MovieAndProductionCompanyCrossRef> =
-            Converter.toMovieAndProductionCompanyCrossRefList(movieDBO.movieId, productionCompanyDBOList)
+            MovieFinderAppConverter.toMovieAndProductionCompanyCrossRefList(movieDBO.movieId, productionCompanyDBOList)
 
         compositeDisposable.add(movieDao.insert(movieDBO)
             .andThen(movieDao.insertGenres(genreDBOList))

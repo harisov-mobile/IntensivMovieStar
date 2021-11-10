@@ -4,5 +4,6 @@ enum class ViewFeature {
     NOW_PLAYING,
     UPCOMING,
     POPULAR,
-    FAVORITE
+    FAVORITE,
+    SEARCHED
 }

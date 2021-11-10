@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import ru.androidschool.intensiv.data.dbo.*
 
 @Database(entities = [MovieDBO::class, GenreDBO::class, ActorDBO::class, ProductionCompanyDBO::class,
@@ -11,7 +12,8 @@ import ru.androidschool.intensiv.data.dbo.*
     TvShowDBO::class],
     version = 1,
     exportSchema = false)
-abstract class MovieDatabase: RoomDatabase() {
+@TypeConverters(MovieFinderAppTypeConverters::class)
+abstract class MovieDatabase : RoomDatabase() {
 
     abstract fun movieDao(): MovieDao
 
@@ -26,11 +28,9 @@ abstract class MovieDatabase: RoomDatabase() {
                     context.applicationContext,
                     MovieDatabase::class.java,
                     DATABASE_NAME)
-                    //.allowMainThreadQueries()
                     .build()
             }
             return instance!!
         }
     }
-
 }

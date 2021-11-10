@@ -4,7 +4,7 @@ import ru.androidschool.intensiv.data.dbo.*
 import ru.androidschool.intensiv.data.dto.*
 import ru.androidschool.intensiv.data.vo.MovieVO
 
-class Converter {
+class MovieFinderAppConverter {
 
     companion object {
         fun toTvShowDBO(tvShowDetails: TvShowDetails): TvShowDBO {
@@ -14,14 +14,27 @@ class Converter {
             )
         }
 
-        fun toMovieDBO(movieDetails: MovieDetails): MovieDBO {
+        fun toMovieDBO(movieDetails: MovieDetails, viewFeature: ViewFeature): MovieDBO {
             return MovieDBO(
                 movieId = movieDetails.id,
                 title = movieDetails.title,
                 overview = movieDetails.overview,
                 voteAverage = movieDetails.voteAverage,
                 releaseDate = movieDetails.releaseDate,
-                posterPath = movieDetails.posterPath
+                posterPath = movieDetails.posterPath,
+                viewFeature = viewFeature
+            )
+        }
+
+        fun toMovieDBO(movie: Movie, viewFeature: ViewFeature): MovieDBO {
+            return MovieDBO(
+                movieId = movie.id,
+                title = movie.title,
+                overview = movie.overview,
+                voteAverage = movie.voteAverage,
+                releaseDate = movie.releaseDate,
+                posterPath = movie.posterPath,
+                viewFeature = viewFeature
             )
         }
 
@@ -98,7 +111,7 @@ class Converter {
             )
         }
 
-        fun toMovieVO(movie: Movie): MovieVO {
+        fun toMovieVO(movie: Movie, viewFeature: ViewFeature): MovieVO {
             // из ретрофитовского Movie преобразуем в вью-объект MovieVO
             return MovieVO(
                 id = movie.id,
@@ -109,15 +122,9 @@ class Converter {
                 productionCompanies = emptyList(),
                 genres = emptyList(),
                 releaseDate = movie.releaseDate,
-                actors = emptyList()
+                actors = emptyList(),
+                viewFeature = viewFeature
             )
         }
-
-//        fun toMovie(fullInfo: MovieAndGenreAndActorAndProductionCompany): Movie {
-//            return Movie(
-//                id = fullInfo.movie.movieId,
-//                posterPath = fullInfo.movie.posterPath
-//            )
-//        }
     }
 }

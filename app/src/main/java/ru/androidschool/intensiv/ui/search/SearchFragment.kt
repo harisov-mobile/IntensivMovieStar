@@ -16,7 +16,6 @@ import kotlinx.android.synthetic.main.fragment_search.*
 import kotlinx.android.synthetic.main.progress_bar.*
 import kotlinx.android.synthetic.main.search_toolbar.*
 import ru.androidschool.intensiv.R
-import ru.androidschool.intensiv.data.dto.Movie
 import ru.androidschool.intensiv.data.vo.MovieVO
 import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.applyProgressBar
@@ -24,7 +23,8 @@ import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.feed.MovieItem
 import ru.androidschool.intensiv.ui.onTextChangedPublishSubject
 import ru.androidschool.intensiv.utils.Const
-import ru.androidschool.intensiv.utils.Converter
+import ru.androidschool.intensiv.utils.MovieFinderAppConverter
+import ru.androidschool.intensiv.utils.ViewFeature
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
@@ -100,7 +100,7 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
                 { // в случае успешного получения данных:
                     response ->
                     val movieResultList = response.results
-                    val movieList = movieResultList.map { movie -> Converter.toMovieVO(movie) }
+                    val movieList = movieResultList.map { movie -> MovieFinderAppConverter.toMovieVO(movie, ViewFeature.SEARCHED) }
                         .map { movieVO ->
                             MovieItem(movieVO) {
                                 openMovieDetails(

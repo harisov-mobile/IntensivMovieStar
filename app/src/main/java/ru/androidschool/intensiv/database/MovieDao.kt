@@ -63,6 +63,4 @@ interface MovieDao {
     @Transaction
     @Query("SELECT * FROM movies")
     fun getMovies(): Observable<List<MovieAndGenreAndActorAndProductionCompany>>
-
-
 }
