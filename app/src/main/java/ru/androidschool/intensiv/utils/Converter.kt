@@ -2,6 +2,7 @@ package ru.androidschool.intensiv.utils
 
 import ru.androidschool.intensiv.data.dbo.*
 import ru.androidschool.intensiv.data.dto.*
+import ru.androidschool.intensiv.data.vo.MovieVO
 
 class Converter {
 
@@ -94,6 +95,21 @@ class Converter {
             return MovieAndProductionCompanyCrossRef(
                 movieId = movieId,
                 productionCompanyId = productionCompanyId
+            )
+        }
+
+        fun toMovieVO(movie: Movie): MovieVO {
+            // из ретрофитовского Movie преобразуем в вью-объект MovieVO
+            return MovieVO(
+                id = movie.id,
+                title = movie.title,
+                rating = movie.rating,
+                posterPath = movie.posterPath,
+                overview = movie.overview,
+                productionCompanies = emptyList(),
+                genres = emptyList(),
+                releaseDate = movie.releaseDate,
+                actors = emptyList()
             )
         }
 

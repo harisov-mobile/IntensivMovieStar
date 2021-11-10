@@ -19,11 +19,13 @@ import kotlinx.android.synthetic.main.search_toolbar.view.*
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.dto.Movie
 import ru.androidschool.intensiv.data.dto.MovieResponse
+import ru.androidschool.intensiv.data.vo.MovieVO
 import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.applyProgressBar
 import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.onTextChangedObservable
 import ru.androidschool.intensiv.utils.Const
+import ru.androidschool.intensiv.utils.Converter
 import timber.log.Timber
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -92,9 +94,9 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
         )
     }
 
-    private fun openMovieDetails(movie: Movie) {
+    private fun openMovieDetails(movieVO: MovieVO) {
         val bundle = Bundle()
-        bundle.putInt(Const.KEY_ID, movie.id)
+        bundle.putInt(Const.KEY_ID, movieVO.id)
         findNavController().navigate(R.id.movie_details_fragment, bundle, options)
     }
 
@@ -127,8 +129,9 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
         val moviesList = listOf(
             MainCardContainer(
                 title,
-                movieResultList.map {
-                    MovieItem(it) { movie ->
+                movieResultList.map { movie -> Converter.toMovieVO(movie) }
+                    .map { movieVO ->
+                    MovieItem(movieVO) { movie ->
                         openMovieDetails(
                             movie
                         )
