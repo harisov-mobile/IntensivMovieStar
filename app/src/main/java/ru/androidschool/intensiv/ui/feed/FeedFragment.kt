@@ -65,17 +65,11 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
             Single.zip(singleNowPlayingMovies, singleUpcomingMovies, singlePopularMovies,
             Function3<MovieResponse, MovieResponse, MovieResponse, List<List<MainCardContainer>>> {
                 nowPlayingMoviesResponse, upcomingMoviesResponse, popularMoviesResponse ->
-                var mainCardContainerList = mutableListOf<List<MainCardContainer>>()
+                val mainCardContainerList = mutableListOf<List<MainCardContainer>>()
 
-                nowPlayingMoviesResponse?.let { response ->
-                    mainCardContainerList.add(getMainCardContainerList(R.string.recommended, response.results))
-                }
-                upcomingMoviesResponse?.let { response ->
-                    mainCardContainerList.add(getMainCardContainerList(R.string.upcoming, response.results))
-                }
-                nowPlayingMoviesResponse?.let { response ->
-                    mainCardContainerList.add(getMainCardContainerList(R.string.popular, response.results))
-                }
+                mainCardContainerList.add(getMainCardContainerList(R.string.recommended, nowPlayingMoviesResponse.results))
+                mainCardContainerList.add(getMainCardContainerList(R.string.upcoming, upcomingMoviesResponse.results))
+                mainCardContainerList.add(getMainCardContainerList(R.string.popular, nowPlayingMoviesResponse.results))
 
                 return@Function3 mainCardContainerList
             })
