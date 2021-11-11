@@ -72,4 +72,8 @@ interface MovieDao {
 
     @Query("DELETE FROM movies WHERE viewFeature = :viewFeature")
     fun deleteViewFeaturedMovies(viewFeature: ViewFeature): Completable
+
+    @Transaction
+    @Query("SELECT * FROM movies WHERE movieId = :movieId AND viewFeature = :viewFeature")
+    fun getFavoriteMovie(movieId: Int, viewFeature: ViewFeature): Observable<MovieAndGenreAndActorAndProductionCompany>
 }

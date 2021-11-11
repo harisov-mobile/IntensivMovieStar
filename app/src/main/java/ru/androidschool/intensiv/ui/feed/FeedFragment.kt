@@ -1,11 +1,9 @@
 package ru.androidschool.intensiv.ui.feed
 
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.View
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.navOptions
@@ -62,8 +60,6 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        Log.i("rustam", "rustam onViewCreated")
-
         compositeDisposable = CompositeDisposable()
 
         trackSearchInput()
@@ -82,8 +78,9 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
             it.onComplete()
         }
 
-        // чтобы "заставить" метод getMoviesFromInternet выполниться строго после того,
-        // как выполнится метод getOfflineData
+        // ВОПРОС:
+        // НЕ ЗНАЮ, КАК "заставить" метод getMoviesFromInternet выполниться строго после того,
+        // как выполнится метод getOfflineData - происходит ЭФФЕКТ ГОНКИ, getOfflineData срабатеывает позже, чем getMoviesFromInternet
         compositeDisposable.add(completableCallGetOfflineData
             .andThen(completableCallGetMoviesFromInternet)
             .subscribeOn(Schedulers.io())
@@ -92,8 +89,6 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
     }
 
     private fun getOfflineData() {
-
-        Log.i("rustam", "rustam getOfflineData")
 
         // Получение данных из БД и вывод этих данных "одним махом", используя zip:
         val observableNowPlayingMovies = getMoviesFromDB(ViewFeature.NOW_PLAYING)
@@ -130,6 +125,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
     }
 
     private fun getMoviesFromInternet() {
+
         // Получение данных из API и вывод этих данных "одним махом", используя zip:
         val singleNowPlayingMovies = MovieApiClient.apiClient.getNowPlayingMovies()
         val singleUpcomingMovies = MovieApiClient.apiClient.getUpcomingMovies()
@@ -221,8 +217,6 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
 
     private fun saveMovieResultToDB(movieResultList: List<Movie>, viewFeature: ViewFeature) {
 
-        Log.i("rustam", "rustam saveMovieResultToDB")
-
         val completableCallDelete = Completable.create {
             deleteViewFeaturedMoviesFromDB(viewFeature)
             it.onComplete()
@@ -233,15 +227,14 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
             it.onComplete()
         }
 
+        // ВОПРОС:
+        // НЕ ЗНАЮ, КАК заставить метод deleteViewFeaturedMoviesFromDB выполнится прежде, чем метод insertMoviesToDB
+        // У МЕНЯ ВОЗНИКАЕТ СОСТОЯНИЕ "ГОНКИ", метод insertMoviesToDB иногда опережает deleteViewFeaturedMoviesFromDB
         compositeDisposable.add(completableCallDelete
             .andThen(completableCallInsertMoviesToDB)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                Log.i("rustam", "rustam Успешно Закончилась saveMovieResultToDB")
-            }, {
-                Log.i("rustam", "rustam С Ошибкой закончилась saveMovieResultToDB")
-            })
+            .subscribe()
         )
     }
 
@@ -253,13 +246,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
         compositeDisposable.add(movieDao.insertMovies(movieDBOList)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                Log.i("rustam", "rustam insertMoviesToDB - добавлены записи в БД по ${viewFeature.name}")
-            },
-                {
-                    Log.i("rustam", "rustam ошибка")
-                }
-            )
+            .subscribe()
         )
     }
 
@@ -311,8 +298,11 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
 
     private fun deleteViewFeaturedMoviesFromDB(viewFeature: ViewFeature) {
         // удалить записи из БД
-        //movieDao.deleteViewFeaturedMovies(viewFeature)
-        Log.i("rustam", "rustam Удалена информация о фильмах в БД по ${viewFeature.name}")
+        compositeDisposable.add(movieDao.deleteViewFeaturedMovies(viewFeature)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe()
+        )
     }
 
     companion object {

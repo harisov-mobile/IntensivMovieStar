@@ -15,3 +15,6 @@ fun <T> Observable<T>.applyProgressBar(progress_bar: ProgressBar): Observable<T>
     this
         .doOnSubscribe { progress_bar.visibility = View.VISIBLE }
         .doFinally { progress_bar.visibility = View.GONE }
+        // когда читаю из БД, то .doFinally не срабатывает, прогресс-бар так и остается крутится,
+        // приходится "гасить" прогресс-бар через doOnNext
+        .doOnNext { progress_bar.visibility = View.GONE }

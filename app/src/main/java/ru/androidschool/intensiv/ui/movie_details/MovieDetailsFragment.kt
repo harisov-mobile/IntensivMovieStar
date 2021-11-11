@@ -52,6 +52,8 @@ class MovieDetailsFragment : Fragment() {
 
     private lateinit var compositeDisposable: CompositeDisposable
 
+    private lateinit var movieDao: MovieDao
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
         // так как Гугл рекомендовал отказаться от "синтетиков", я сделал по-старому через findViewById
@@ -72,6 +74,8 @@ class MovieDetailsFragment : Fragment() {
         likeCheckBox.setOnCheckedChangeListener { _, isChecked ->
             onLikeCheckBoxChanged(isChecked)
         }
+
+        movieDao = MovieDatabase.get(requireContext()).movieDao()
 
         return view
     }
@@ -142,6 +146,8 @@ class MovieDetailsFragment : Fragment() {
             )
 
         compositeDisposable.add(disposableMovieCredits)
+
+        setMovieLiked(movieId)
     }
 
     private fun openActorDetails(actor: Actor) {
@@ -163,10 +169,9 @@ class MovieDetailsFragment : Fragment() {
 
     private fun onLikeCheckBoxChanged(isChecked: Boolean) {
         movieDetails?.let {
-            val movieDao = MovieDatabase.get(requireContext()).movieDao()
 
             if (isChecked) {
-                saveLikedMovieToDB(it, actorList ?: emptyList(), movieDao)
+                saveLikedMovieToDB(it, actorList ?: emptyList())
             } else {
                 val movieDBO = MovieFinderAppConverter.toMovieDBO(it, ViewFeature.FAVORITE)
                 compositeDisposable.add(movieDao.delete(movieDBO)
@@ -184,7 +189,7 @@ class MovieDetailsFragment : Fragment() {
         }
     }
 
-    private fun saveLikedMovieToDB(movieDet: MovieDetails, actors: List<Actor>, movieDao: MovieDao) {
+    private fun saveLikedMovieToDB(movieDet: MovieDetails, actors: List<Actor>) {
         val movieDBO = MovieFinderAppConverter.toMovieDBO(movieDet, ViewFeature.FAVORITE)
 
         val genreDBOList: List<GenreDBO> = MovieFinderAppConverter.toGenreDBOList(movieDet.genres)
@@ -215,6 +220,22 @@ class MovieDetailsFragment : Fragment() {
             },
                 {
                     Toast.makeText(context, "Can not write this movie as liked", Toast.LENGTH_SHORT).show()
+                }
+            )
+        )
+    }
+
+    private fun setMovieLiked(movieId: Int) {
+
+        compositeDisposable.add(movieDao.getFavoriteMovie(movieId, ViewFeature.FAVORITE)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ movieDBO ->
+                likeCheckBox.isChecked = movieDBO?.let { true } ?: let { false }
+            },
+                {
+                    // в случае ошибки
+                    error -> Timber.e(error, "Ошибка при получении понравившегося фильма.")
                 }
             )
         )
