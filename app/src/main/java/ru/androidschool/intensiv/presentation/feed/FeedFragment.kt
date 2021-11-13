@@ -21,18 +21,18 @@ import kotlinx.android.synthetic.main.feed_header.*
 import kotlinx.android.synthetic.main.progress_bar.*
 import kotlinx.android.synthetic.main.search_toolbar.view.*
 import ru.androidschool.intensiv.R
+import ru.androidschool.intensiv.data.database.MovieDao
+import ru.androidschool.intensiv.data.database.MovieDatabase
 import ru.androidschool.intensiv.data.dbo.MovieAndGenreAndActorAndProductionCompany
 import ru.androidschool.intensiv.data.dto.Movie
 import ru.androidschool.intensiv.data.dto.MovieResponse
-import ru.androidschool.intensiv.data.vo.MovieVO
-import ru.androidschool.intensiv.data.database.MovieDao
-import ru.androidschool.intensiv.data.database.MovieDatabase
+import ru.androidschool.intensiv.data.mappers.MovieMapper
 import ru.androidschool.intensiv.data.network.MovieApiClient
+import ru.androidschool.intensiv.data.vo.MovieVO
 import ru.androidschool.intensiv.ui.applyProgressBar
 import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.onTextChangedObservable
 import ru.androidschool.intensiv.utils.Const
-import ru.androidschool.intensiv.data.mappers.MovieFinderAppConverter
 import ru.androidschool.intensiv.utils.ViewFeature
 import timber.log.Timber
 import java.util.*
@@ -202,7 +202,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
             MainCardContainer(
                 title,
                 movieResultList.map { movie ->
-                    MovieFinderAppConverter.toMovieVO(movie, viewFeature) }
+                    MovieMapper.toMovieVO(movie, viewFeature) }
                     .map { movieVO ->
                         MovieItem(movieVO) {
                             openMovieDetails(
@@ -240,7 +240,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
 
     private fun insertMoviesToDB(movieResultList: List<Movie>, viewFeature: ViewFeature) {
         val movieDBOList = movieResultList.map { movie ->
-            MovieFinderAppConverter.toMovieDBO(movie, viewFeature)
+            MovieMapper.toMovieDBO(movie, viewFeature)
         }
 
         compositeDisposable.add(movieDao.insertMovies(movieDBOList)
@@ -256,7 +256,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
             MainCardContainer(
                 title,
                 movieList.map { movie ->
-                    MovieFinderAppConverter.toMovieVO(movie.movieDBO, viewFeature) }
+                    MovieMapper.toMovieVO(movie.movieDBO, viewFeature) }
                     .map { movieVO ->
                     MovieItem(movieVO) {
                         openMovieDetails(

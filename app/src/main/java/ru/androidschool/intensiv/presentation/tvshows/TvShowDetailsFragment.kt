@@ -17,15 +17,15 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import ru.androidschool.intensiv.R
+import ru.androidschool.intensiv.data.database.MovieDatabase
 import ru.androidschool.intensiv.data.dto.Actor
 import ru.androidschool.intensiv.data.dto.TvShowDetails
-import ru.androidschool.intensiv.data.database.MovieDatabase
+import ru.androidschool.intensiv.data.mappers.TvShowMapper
 import ru.androidschool.intensiv.data.network.MovieApiClient
-import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.presentation.feed.ActorItem
+import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.loadImage
 import ru.androidschool.intensiv.utils.Const
-import ru.androidschool.intensiv.data.mappers.MovieFinderAppConverter
 import timber.log.Timber
 
 class TvShowDetailsFragment : Fragment() {
@@ -159,7 +159,7 @@ class TvShowDetailsFragment : Fragment() {
     private fun onLikeCheckBoxChanged(isChecked: Boolean) {
         tvShowDetails?.let {
             val movieDao = MovieDatabase.get(requireContext()).movieDao()
-            val tvShowDBO = MovieFinderAppConverter.toTvShowDBO(it)
+            val tvShowDBO = TvShowMapper.toTvShowDBO(it)
             if (isChecked) {
                 compositeDisposable.add(movieDao.insert(tvShowDBO)
                     .subscribeOn(Schedulers.io())
