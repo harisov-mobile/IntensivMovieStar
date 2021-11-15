@@ -78,9 +78,6 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
             it.onComplete()
         }
 
-        // ВОПРОС:
-        // НЕ ЗНАЮ, КАК "заставить" метод getMoviesFromInternet выполниться строго после того,
-        // как выполнится метод getOfflineData - происходит ЭФФЕКТ ГОНКИ, getOfflineData срабатеывает позже, чем getMoviesFromInternet
         compositeDisposable.add(completableCallGetOfflineData
             .andThen(completableCallGetMoviesFromInternet)
             .subscribeOn(Schedulers.io())
@@ -91,12 +88,12 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
     private fun getOfflineData() {
 
         // Получение данных из БД и вывод этих данных "одним махом", используя zip:
-        val observableNowPlayingMovies = getMoviesFromDB(ViewFeature.NOW_PLAYING)
-        val observableUpcomingMovies = getMoviesFromDB(ViewFeature.UPCOMING)
-        val observablePopularMovies = getMoviesFromDB(ViewFeature.POPULAR)
+        val singleNowPlayingMovies = getMoviesFromDB(ViewFeature.NOW_PLAYING)
+        val singleUpcomingMovies = getMoviesFromDB(ViewFeature.UPCOMING)
+        val singlePopularMovies = getMoviesFromDB(ViewFeature.POPULAR)
 
         compositeDisposable.add(
-            Observable.zip(observableNowPlayingMovies, observableUpcomingMovies, observablePopularMovies,
+            Single.zip(singleNowPlayingMovies, singleUpcomingMovies, singlePopularMovies,
                 Function3<List<MovieAndGenreAndActorAndProductionCompany>, List<MovieAndGenreAndActorAndProductionCompany>, List<MovieAndGenreAndActorAndProductionCompany>, List<List<MainCardContainer>>> {
                         nowPlayingMovies, upcomingMovies, popularMovies ->
                     val mainCardContainerList = mutableListOf<List<MainCardContainer>>()
@@ -292,7 +289,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
         compositeDisposable.add(searchDisposable)
     }
 
-    private fun getMoviesFromDB(viewFeature: ViewFeature): Observable<List<MovieAndGenreAndActorAndProductionCompany>> {
+    private fun getMoviesFromDB(viewFeature: ViewFeature): Single<List<MovieAndGenreAndActorAndProductionCompany>> {
         return movieDao.getMovies(viewFeature)
     }
 
