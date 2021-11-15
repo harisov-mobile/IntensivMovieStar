@@ -16,6 +16,7 @@ import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.dbo.MovieAndGenreAndActorAndProductionCompany
 import ru.androidschool.intensiv.data.dbo.MovieDBO
 import ru.androidschool.intensiv.data.database.MovieDatabase
+import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.utils.Const
 import ru.androidschool.intensiv.utils.ViewFeature
 import timber.log.Timber
@@ -53,8 +54,7 @@ class WatchlistFragment : Fragment(R.layout.fragment_watchlist) {
         val movieDao = MovieDatabase.get(requireContext()).movieDao()
 
         compositeDisposable.add(movieDao.getMovies(ViewFeature.FAVORITE)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
+            .applySchedulers()
             .subscribe({ movies: List<MovieAndGenreAndActorAndProductionCompany> ->
                 val movieItemList = movies.map {
                     val movie = it.movieDBO

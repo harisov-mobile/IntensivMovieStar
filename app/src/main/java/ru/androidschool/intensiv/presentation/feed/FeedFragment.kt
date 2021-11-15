@@ -29,6 +29,7 @@ import ru.androidschool.intensiv.data.dto.MovieResponse
 import ru.androidschool.intensiv.data.mappers.MovieMapper
 import ru.androidschool.intensiv.data.network.MovieApiClient
 import ru.androidschool.intensiv.data.vo.MovieVO
+import ru.androidschool.intensiv.presentation.applySchedulers
 import ru.androidschool.intensiv.ui.applyProgressBar
 import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.onTextChangedObservable
@@ -80,8 +81,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
 
         compositeDisposable.add(completableCallGetOfflineData
             .andThen(completableCallGetMoviesFromInternet)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
+            .applySchedulers()
             .subscribe())
     }
 
@@ -229,8 +229,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
         // У МЕНЯ ВОЗНИКАЕТ СОСТОЯНИЕ "ГОНКИ", метод insertMoviesToDB иногда опережает deleteViewFeaturedMoviesFromDB
         compositeDisposable.add(completableCallDelete
             .andThen(completableCallInsertMoviesToDB)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
+            .applySchedulers()
             .subscribe()
         )
     }
@@ -241,8 +240,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
         }
 
         compositeDisposable.add(movieDao.insertMovies(movieDBOList)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
+            .applySchedulers()
             .subscribe()
         )
     }
@@ -296,8 +294,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
     private fun deleteViewFeaturedMoviesFromDB(viewFeature: ViewFeature) {
         // удалить записи из БД
         compositeDisposable.add(movieDao.deleteViewFeaturedMovies(viewFeature)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
+            .applySchedulers()
             .subscribe()
         )
     }

@@ -22,6 +22,7 @@ import ru.androidschool.intensiv.data.dto.Actor
 import ru.androidschool.intensiv.data.dto.TvShowDetails
 import ru.androidschool.intensiv.data.mappers.TvShowMapper
 import ru.androidschool.intensiv.data.network.MovieApiClient
+import ru.androidschool.intensiv.presentation.applySchedulers
 import ru.androidschool.intensiv.presentation.feed.ActorItem
 import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.loadImage
@@ -162,8 +163,7 @@ class TvShowDetailsFragment : Fragment() {
             val tvShowDBO = TvShowMapper.toTvShowDBO(it)
             if (isChecked) {
                 compositeDisposable.add(movieDao.insert(tvShowDBO)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
+                    .applySchedulers()
                     .subscribe({
                         Toast.makeText(context, "Written as liked", Toast.LENGTH_SHORT).show()
                     },
@@ -174,8 +174,7 @@ class TvShowDetailsFragment : Fragment() {
                 )
             } else {
                 compositeDisposable.add(movieDao.delete(tvShowDBO)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
+                    .applySchedulers()
                     .subscribe({
                         Toast.makeText(context, "Removed from liked", Toast.LENGTH_SHORT).show()
                     },
@@ -193,8 +192,7 @@ class TvShowDetailsFragment : Fragment() {
         val movieDao = MovieDatabase.get(requireContext()).movieDao()
 
         compositeDisposable.add(movieDao.getTvShow(tvShowId)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
+            .applySchedulers()
             .subscribe({ tvShowDBO ->
                 likeCheckBox.isChecked = tvShowDBO?.let { true } ?: let { false }
             },

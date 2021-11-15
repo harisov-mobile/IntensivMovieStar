@@ -24,6 +24,7 @@ import ru.androidschool.intensiv.data.database.MovieDao
 import ru.androidschool.intensiv.data.database.MovieDatabase
 import ru.androidschool.intensiv.data.mappers.*
 import ru.androidschool.intensiv.data.network.MovieApiClient
+import ru.androidschool.intensiv.presentation.applySchedulers
 import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.presentation.feed.ActorItem
 import ru.androidschool.intensiv.ui.loadImage
@@ -175,8 +176,7 @@ class MovieDetailsFragment : Fragment() {
             } else {
                 val movieDBO = MovieMapper.toMovieDBO(it, ViewFeature.FAVORITE)
                 compositeDisposable.add(movieDao.delete(movieDBO)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
+                    .applySchedulers()
                     .subscribe({
                         Toast.makeText(context, "Removed from liked", Toast.LENGTH_SHORT).show()
                     },
@@ -213,8 +213,7 @@ class MovieDetailsFragment : Fragment() {
             .andThen(movieDao.insertGenreJoins(movieAndGenreCrossRefList))
             .andThen(movieDao.insertActorJoins(movieAndActorCrossRefList))
             .andThen(movieDao.insertProductionCompanyJoins(movieAndProductionCompanyCrossRefList))
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
+            .applySchedulers()
             .subscribe({
                 Toast.makeText(context, "Written this movie as liked", Toast.LENGTH_SHORT).show()
             },
@@ -228,8 +227,7 @@ class MovieDetailsFragment : Fragment() {
     private fun setMovieLiked(movieId: Int) {
 
         compositeDisposable.add(movieDao.getFavoriteMovie(movieId, ViewFeature.FAVORITE)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
+            .applySchedulers()
             .subscribe({ movieDBO ->
                 likeCheckBox.isChecked = movieDBO?.let { true } ?: let { false }
             },
