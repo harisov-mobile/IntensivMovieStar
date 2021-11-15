@@ -3,6 +3,7 @@ package ru.androidschool.intensiv.data.database
 import androidx.room.*
 import io.reactivex.Completable
 import io.reactivex.Observable
+import io.reactivex.Single
 import ru.androidschool.intensiv.data.dbo.*
 import ru.androidschool.intensiv.utils.ViewFeature
 
@@ -68,12 +69,12 @@ interface MovieDao {
 
     @Transaction
     @Query("SELECT * FROM movies WHERE viewFeature = :viewFeature")
-    fun getMovies(viewFeature: ViewFeature): Observable<List<MovieAndGenreAndActorAndProductionCompany>>
+    fun getMovies(viewFeature: ViewFeature): Single<List<MovieAndGenreAndActorAndProductionCompany>>
 
     @Query("DELETE FROM movies WHERE viewFeature = :viewFeature")
     fun deleteViewFeaturedMovies(viewFeature: ViewFeature): Completable
 
     @Transaction
     @Query("SELECT * FROM movies WHERE movieId = :movieId AND viewFeature = :viewFeature")
-    fun getFavoriteMovie(movieId: Int, viewFeature: ViewFeature): Observable<MovieAndGenreAndActorAndProductionCompany>
+    fun getFavoriteMovie(movieId: Int, viewFeature: ViewFeature): Single<MovieAndGenreAndActorAndProductionCompany>
 }
