@@ -12,7 +12,7 @@ import kotlinx.android.synthetic.main.progress_bar.*
 import kotlinx.android.synthetic.main.tv_shows_fragment.*
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.dto.TvShow
-import ru.androidschool.intensiv.data.network.MovieApiClient
+import ru.androidschool.intensiv.data.repository.TvShowRepositoryImpl
 import ru.androidschool.intensiv.ui.applyProgressBar
 import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.utils.Const
@@ -43,7 +43,8 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
         compositeDisposable = CompositeDisposable()
 
         // Получаем список сериалов
-        val singlePopularTvShows = MovieApiClient.apiClient.getPopularTvShows()
+        // val singlePopularTvShows = MovieApiClient.apiClient.getPopularTvShows()
+        val singlePopularTvShows = TvShowRepositoryImpl.getPopularTvShows()
         val disposablePopularTvShows = singlePopularTvShows
             .applySchedulers()
             .applyProgressBar(progress_bar)
