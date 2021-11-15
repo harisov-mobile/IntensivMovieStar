@@ -1,4 +1,4 @@
-package ru.androidschool.intensiv.data
+package ru.androidschool.intensiv.data.dto
 
 import com.google.gson.annotations.SerializedName
 import ru.androidschool.intensiv.BuildConfig
@@ -15,9 +15,8 @@ data class Actor(
     @SerializedName("popularity") val popularity: Double,
     @SerializedName("character") val character: String,
     @SerializedName("credit_id") val creditId: String,
-    @SerializedName("order") val order: Int
+    @SerializedName("order") val order: Int,
+    @SerializedName("profile_path") val profilePath: String? = null // согласно документации string or null
 ) {
-    @SerializedName("profile_path")
-    val profilePath: String? = null // согласно документации string or null
-        get() = "${BuildConfig.IMAGE_URL}$field"
+    fun getProfilePathWithImageUrl(): String = "${BuildConfig.IMAGE_URL}$profilePath"
 }

@@ -11,10 +11,11 @@ import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.progress_bar.*
 import kotlinx.android.synthetic.main.tv_shows_fragment.*
 import ru.androidschool.intensiv.R
-import ru.androidschool.intensiv.data.TvShow
+import ru.androidschool.intensiv.data.dto.TvShow
 import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.applyProgressBar
 import ru.androidschool.intensiv.ui.applySchedulers
+import ru.androidschool.intensiv.utils.Const
 import timber.log.Timber
 
 class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
@@ -72,7 +73,7 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
 
     private fun openTvShowDetails(tvShow: TvShow) {
         val bundle = Bundle()
-        bundle.putInt(KEY_TV_SHOW_ID, tvShow.id)
+        bundle.putInt(Const.KEY_ID, tvShow.id)
         findNavController().navigate(R.id.tv_show_details_fragment, bundle, options)
     }
 
@@ -88,9 +89,5 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
     override fun onDestroyView() {
         super.onDestroyView()
         compositeDisposable.clear() // диспозабл освободить!
-    }
-
-    companion object {
-        const val KEY_TV_SHOW_ID = "tv_show_id"
     }
 }

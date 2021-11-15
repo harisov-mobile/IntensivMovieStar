@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatRatingBar
@@ -12,14 +13,22 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.imageview.ShapeableImageView
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
 import ru.androidschool.intensiv.R
-import ru.androidschool.intensiv.data.Actor
+import ru.androidschool.intensiv.data.dto.Actor
+import ru.androidschool.intensiv.data.dto.MovieDetails
+import ru.androidschool.intensiv.data.dbo.*
+import ru.androidschool.intensiv.database.MovieDao
+import ru.androidschool.intensiv.database.MovieDatabase
 import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.feed.ActorItem
-import ru.androidschool.intensiv.ui.feed.FeedFragment
 import ru.androidschool.intensiv.ui.loadImage
+import ru.androidschool.intensiv.utils.Const
+import ru.androidschool.intensiv.utils.MovieFinderAppConverter
+import ru.androidschool.intensiv.utils.ViewFeature
 import timber.log.Timber
 
 class MovieDetailsFragment : Fragment() {
@@ -33,11 +42,17 @@ class MovieDetailsFragment : Fragment() {
     private lateinit var movieRating: AppCompatRatingBar
     private lateinit var actorListRecyclerView: RecyclerView
 
+    private lateinit var likeCheckBox: CheckBox
+    private var movieDetails: MovieDetails? = null
+    private var actorList: List<Actor>? = null
+
     private val adapter by lazy {
         GroupAdapter<GroupieViewHolder>()
     }
 
     private lateinit var compositeDisposable: CompositeDisposable
+
+    private lateinit var movieDao: MovieDao
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
@@ -54,13 +69,21 @@ class MovieDetailsFragment : Fragment() {
         movieRating = view.findViewById(R.id.movie_rating)
         actorListRecyclerView = view.findViewById(R.id.actor_list_recycler_view)
 
+        likeCheckBox = view.findViewById(R.id.like_check_box)
+
+        likeCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            onLikeCheckBoxChanged(isChecked)
+        }
+
+        movieDao = MovieDatabase.get(requireContext()).movieDao()
+
         return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val movieId = requireArguments().getInt(FeedFragment.KEY_MOVIE_ID)
+        val movieId = requireArguments().getInt(Const.KEY_ID)
 
         actorListRecyclerView.adapter = adapter
 
@@ -72,29 +95,29 @@ class MovieDetailsFragment : Fragment() {
             .applySchedulers()
             .subscribe(
                 { // в случае успешного получения данных:
-                    movieDetails ->
-                    movieDetails?.let { movieDetails ->
-                    titleTextView.text = movieDetails.title
-                    overviewTextView.text = movieDetails.overview
+                        movieDet ->
+                    movieDetails = movieDet // сохраню для последующей записи в БД
+                    movieDet?.let { it ->
+                        titleTextView.text = it.title
+                        overviewTextView.text = it.overview
 
-                    studioTextView.text = movieDetails.productionCompanies.map {
-                            company -> company.name }.joinToString()
+                        studioTextView.text = it.productionCompanies.map { company -> company.name }.joinToString()
 
-                    genreTextView.text = movieDetails.genres.map {
-                            genre -> genre.name }.joinToString()
+                        genreTextView.text = it.genres.map { genre -> genre.name }.joinToString()
 
-                    if (movieDetails.releaseDate.length >= 4) {
-                        releaseDateTextView.text = movieDetails.releaseDate.substring(0, YEAR_SIZE)
-                    }
+                        if (it.releaseDate.length >= Const.YEAR_LENGTH) {
+                            releaseDateTextView.text = it.releaseDate.substring(0, Const.YEAR_LENGTH)
+                        }
 
-                    movieRating.rating = movieDetails.rating
+                        movieRating.rating = it.rating
 
-                    imagePreview.loadImage(movieDetails.posterPath)
+                        imagePreview.loadImage(it.getPosterPathWithImageUrl())
                     }
                 },
                 {
                     // в случае ошибки
-                    error -> Timber.e(error, "Ошибка при получении NowPlayingMovies")
+                        error ->
+                    Timber.e(error, "Ошибка при получении детальной информации о фильме")
                 }
             )
 
@@ -106,9 +129,10 @@ class MovieDetailsFragment : Fragment() {
             .applySchedulers()
             .subscribe(
                 { // в случае успешного получения данных:
-                    movieCreditsResponse ->
+                        movieCreditsResponse ->
                     movieCreditsResponse?.let { movieCreditsResponse ->
-                    val actorItemList = movieCreditsResponse.cast.map {
+                        actorList = movieCreditsResponse.cast // сохраню для последующей записи в БД
+                        val actorItemList = movieCreditsResponse.cast.map {
                             ActorItem(it) { actor -> openActorDetails(actor) } // если понадобится открыть фрагмент с описанием актера
                         }.toList()
                         adapter.apply { addAll(actorItemList) }
@@ -116,11 +140,14 @@ class MovieDetailsFragment : Fragment() {
                 },
                 {
                     // в случае ошибки
-                    error -> Timber.e(error, "Ошибка при получении списка актеров")
+                        error ->
+                    Timber.e(error, "Ошибка при получении списка актеров")
                 }
             )
 
         compositeDisposable.add(disposableMovieCredits)
+
+        setMovieLiked(movieId)
     }
 
     private fun openActorDetails(actor: Actor) {
@@ -140,10 +167,83 @@ class MovieDetailsFragment : Fragment() {
         compositeDisposable.clear() // диспозабл освободить!
     }
 
+    private fun onLikeCheckBoxChanged(isChecked: Boolean) {
+        movieDetails?.let {
+
+            if (isChecked) {
+                saveLikedMovieToDB(it, actorList ?: emptyList())
+            } else {
+                val movieDBO = MovieFinderAppConverter.toMovieDBO(it, ViewFeature.FAVORITE)
+                compositeDisposable.add(movieDao.delete(movieDBO)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe({
+                        Toast.makeText(context, "Removed from liked", Toast.LENGTH_SHORT).show()
+                    },
+                        {
+                            Toast.makeText(context, "Can not remove from liked", Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                )
+            }
+        }
+    }
+
+    private fun saveLikedMovieToDB(movieDet: MovieDetails, actors: List<Actor>) {
+        val movieDBO = MovieFinderAppConverter.toMovieDBO(movieDet, ViewFeature.FAVORITE)
+
+        val genreDBOList: List<GenreDBO> = MovieFinderAppConverter.toGenreDBOList(movieDet.genres)
+        val actorDBOList: List<ActorDBO> = MovieFinderAppConverter.toActorDBOList(actors)
+        val productionCompanyDBOList: List<ProductionCompanyDBO> =
+            MovieFinderAppConverter.toProductionCompanyDBOList(movieDet.productionCompanies)
+
+        val movieAndGenreCrossRefList: List<MovieAndGenreCrossRef> =
+            MovieFinderAppConverter.toMovieAndGenreCrossRefList(movieDBO.movieId, genreDBOList)
+
+        val movieAndActorCrossRefList: List<MovieAndActorCrossRef> =
+            MovieFinderAppConverter.toMovieAndActorCrossRefList(movieDBO.movieId, actorDBOList)
+
+        val movieAndProductionCompanyCrossRefList: List<MovieAndProductionCompanyCrossRef> =
+            MovieFinderAppConverter.toMovieAndProductionCompanyCrossRefList(movieDBO.movieId, productionCompanyDBOList)
+
+        compositeDisposable.add(movieDao.insert(movieDBO)
+            .andThen(movieDao.insertGenres(genreDBOList))
+            .andThen(movieDao.insertActors(actorDBOList))
+            .andThen(movieDao.insertProductionCompanies(productionCompanyDBOList))
+            .andThen(movieDao.insertGenreJoins(movieAndGenreCrossRefList))
+            .andThen(movieDao.insertActorJoins(movieAndActorCrossRefList))
+            .andThen(movieDao.insertProductionCompanyJoins(movieAndProductionCompanyCrossRefList))
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                Toast.makeText(context, "Written this movie as liked", Toast.LENGTH_SHORT).show()
+            },
+                {
+                    Toast.makeText(context, "Can not write this movie as liked", Toast.LENGTH_SHORT).show()
+                }
+            )
+        )
+    }
+
+    private fun setMovieLiked(movieId: Int) {
+
+        compositeDisposable.add(movieDao.getFavoriteMovie(movieId, ViewFeature.FAVORITE)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ movieDBO ->
+                likeCheckBox.isChecked = movieDBO?.let { true } ?: let { false }
+            },
+                {
+                    // в случае ошибки
+                    error -> Timber.e(error, "Ошибка при получении понравившегося фильма.")
+                }
+            )
+        )
+    }
+
     companion object {
 
         const val KEY_ACTOR_ID = "actor_id"
         private const val TAG = "MovieDetailsFragment"
-        const val YEAR_SIZE = 4
     }
 }

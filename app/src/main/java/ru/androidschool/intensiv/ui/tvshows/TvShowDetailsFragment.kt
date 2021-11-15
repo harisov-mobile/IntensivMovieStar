@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatRatingBar
@@ -12,13 +13,19 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.imageview.ShapeableImageView
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
 import ru.androidschool.intensiv.R
-import ru.androidschool.intensiv.data.Actor
+import ru.androidschool.intensiv.data.dto.Actor
+import ru.androidschool.intensiv.data.dto.TvShowDetails
+import ru.androidschool.intensiv.database.MovieDatabase
 import ru.androidschool.intensiv.network.MovieApiClient
 import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.ui.feed.ActorItem
 import ru.androidschool.intensiv.ui.loadImage
+import ru.androidschool.intensiv.utils.Const
+import ru.androidschool.intensiv.utils.MovieFinderAppConverter
 import timber.log.Timber
 
 class TvShowDetailsFragment : Fragment() {
@@ -31,6 +38,9 @@ class TvShowDetailsFragment : Fragment() {
     private lateinit var imagePreview: ShapeableImageView
     private lateinit var movieRating: AppCompatRatingBar
     private lateinit var actorListRecyclerView: RecyclerView
+
+    private lateinit var likeCheckBox: CheckBox
+    private var tvShowDetails: TvShowDetails? = null
 
     private val adapter by lazy {
         GroupAdapter<GroupieViewHolder>()
@@ -53,14 +63,22 @@ class TvShowDetailsFragment : Fragment() {
         movieRating = view.findViewById(R.id.movie_rating)
         actorListRecyclerView = view.findViewById(R.id.actor_list_recycler_view)
 
+        likeCheckBox = view.findViewById(R.id.like_check_box)
+
+        likeCheckBox.setOnCheckedChangeListener {
+            _, isChecked ->
+            onLikeCheckBoxChanged(isChecked)
+        }
+
         return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val tvShowId = requireArguments().getInt(TvShowsFragment.KEY_TV_SHOW_ID)
+        val tvShowId = requireArguments().getInt(Const.KEY_ID)
 
+        adapter.clear()
         actorListRecyclerView.adapter = adapter
 
         compositeDisposable = CompositeDisposable()
@@ -71,29 +89,30 @@ class TvShowDetailsFragment : Fragment() {
             .applySchedulers()
             .subscribe(
                 { // в случае успешного получения данных:
-                    tvShowDetails ->
-                    tvShowDetails?.let { tvShowDetails ->
-                        titleTextView.text = tvShowDetails.name
-                        overviewTextView.text = tvShowDetails.overview
+                    tvShowDet ->
+                    tvShowDetails = tvShowDet
+                    tvShowDet?.let { it ->
+                        titleTextView.text = it.name
+                        overviewTextView.text = it.overview
 
-                        studioTextView.text = tvShowDetails.productionCompanies.map {
+                        studioTextView.text = it.productionCompanies.map {
                                 company -> company.name }.joinToString()
 
-                        genreTextView.text = tvShowDetails.genres.map {
+                        genreTextView.text = it.genres.map {
                                 it.name }.joinToString()
 
-                        if (tvShowDetails.firstAirDate.length >= 4) {
-                            releaseDateTextView.text = tvShowDetails.firstAirDate.substring(0, YEAR_SIZE)
+                        if (it.firstAirDate.length >= Const.YEAR_LENGTH) {
+                            releaseDateTextView.text = it.firstAirDate.substring(0, Const.YEAR_LENGTH)
                         }
 
-                        movieRating.rating = tvShowDetails.rating
+                        movieRating.rating = it.rating
 
-                        imagePreview.loadImage(tvShowDetails.posterPath)
+                        imagePreview.loadImage(it.getPosterPathWithImageUrl())
                     }
                 },
                 {
                     // в случае ошибки
-                    error -> Timber.e(error, "Ошибка при получении NowPlayingMovies")
+                    error -> Timber.e(error, "Ошибка при получении TvShowDetails")
                 }
             )
 
@@ -120,6 +139,9 @@ class TvShowDetailsFragment : Fragment() {
             )
 
         compositeDisposable.add(disposableTvShowCredits)
+
+        // считать из БД
+        setTvShowLiked(tvShowId)
     }
 
     private fun openActorDetails(actor: Actor) {
@@ -134,8 +156,57 @@ class TvShowDetailsFragment : Fragment() {
         compositeDisposable.clear() // диспозабл освободить!
     }
 
+    private fun onLikeCheckBoxChanged(isChecked: Boolean) {
+        tvShowDetails?.let {
+            val movieDao = MovieDatabase.get(requireContext()).movieDao()
+            val tvShowDBO = MovieFinderAppConverter.toTvShowDBO(it)
+            if (isChecked) {
+                compositeDisposable.add(movieDao.insert(tvShowDBO)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe({
+                        Toast.makeText(context, "Written as liked", Toast.LENGTH_SHORT).show()
+                    },
+                        {
+                            Toast.makeText(context, "Can not write as liked", Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                )
+            } else {
+                compositeDisposable.add(movieDao.delete(tvShowDBO)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe({
+                        Toast.makeText(context, "Removed from liked", Toast.LENGTH_SHORT).show()
+                    },
+                        {
+                            Toast.makeText(context, "Can not remove from liked", Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                )
+            }
+        }
+    }
+
+    private fun setTvShowLiked(tvShowId: Int) {
+
+        val movieDao = MovieDatabase.get(requireContext()).movieDao()
+
+        compositeDisposable.add(movieDao.getTvShow(tvShowId)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ tvShowDBO ->
+                likeCheckBox.isChecked = tvShowDBO?.let { true } ?: let { false }
+            },
+                {
+                    // в случае ошибки
+                    error -> Timber.e(error, "Ошибка при получении понравившегося телесериала.")
+                }
+            )
+        )
+    }
+
     companion object {
         const val KEY_ACTOR_ID = "actor_id"
-        const val YEAR_SIZE = 4
     }
 }

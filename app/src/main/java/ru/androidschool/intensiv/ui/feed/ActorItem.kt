@@ -5,7 +5,7 @@ import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import com.xwray.groupie.kotlinandroidextensions.Item
 import kotlinx.android.synthetic.main.item_actor.*
 import ru.androidschool.intensiv.R
-import ru.androidschool.intensiv.data.Actor
+import ru.androidschool.intensiv.data.dto.Actor
 
 class ActorItem(
     private val content: Actor,
@@ -29,7 +29,7 @@ class ActorItem(
 
         // TODO Получать из модели
         Picasso.get()
-            .load(content.profilePath)
+            .load(content.getProfilePathWithImageUrl())
             .placeholder(R.drawable.ic_person_placeholder)
             .into(viewHolder.image_preview)
     }

@@ -5,7 +5,7 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 import ru.androidschool.intensiv.BuildConfig
-import ru.androidschool.intensiv.data.*
+import ru.androidschool.intensiv.data.dto.*
 
 interface MovieApiInterface {
 
@@ -66,7 +66,7 @@ interface MovieApiInterface {
         @Query("api_key") apiKey: String = BuildConfig.THE_MOVIE_DATABASE_API,
         @Query("language") language: String = REQUIRED_LANGUAGE,
         @Query("query") query: String
-    ): Single<SearchResponse>
+    ): Single<MovieResponse>
 
     companion object {
         val REQUIRED_LANGUAGE = "ru-RU"
