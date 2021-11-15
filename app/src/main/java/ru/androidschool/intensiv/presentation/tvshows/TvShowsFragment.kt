@@ -8,23 +8,27 @@ import androidx.navigation.navOptions
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import io.reactivex.disposables.CompositeDisposable
+import kotlinx.android.synthetic.main.feed_fragment.*
 import kotlinx.android.synthetic.main.progress_bar.*
 import kotlinx.android.synthetic.main.tv_shows_fragment.*
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.dto.TvShow
 import ru.androidschool.intensiv.data.repository.TvShowRepositoryImpl
+import ru.androidschool.intensiv.domain.usecase.GetPopularTvShowsUseCase
 import ru.androidschool.intensiv.ui.applyProgressBar
 import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.utils.Const
 import timber.log.Timber
 
-class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
+class TvShowsFragment : Fragment(R.layout.tv_shows_fragment), TvShowsPresenter.TvShowsView {
 
     private val adapter by lazy {
         GroupAdapter<GroupieViewHolder>()
     }
 
-    private lateinit var compositeDisposable: CompositeDisposable
+    private val presenter: TvShowsPresenter by lazy {
+        TvShowsPresenter(GetPopularTvShowsUseCase(TvShowRepositoryImpl))
+    }
 
     private val options = navOptions {
         anim {
@@ -38,38 +42,10 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        tvshows_recycler_view.adapter = adapter
+        // Добавляем в presenter имплементацию TvShowsFragment
+        presenter.attachView(this)
 
-        compositeDisposable = CompositeDisposable()
-
-        // Получаем список сериалов
-        // val singlePopularTvShows = MovieApiClient.apiClient.getPopularTvShows()
-        val singlePopularTvShows = TvShowRepositoryImpl.getPopularTvShows()
-        val disposablePopularTvShows = singlePopularTvShows
-            .applySchedulers()
-            .applyProgressBar(progress_bar)
-            .subscribe(
-                { // в случае успешного получения данных:
-                    response ->
-                    response?.let { response ->
-                    val tvShowResultList = response.results
-                    val tvShowList = tvShowResultList.map {
-                        TvShowItem(it) { tvShow ->
-                            openTvShowDetails(
-                                tvShow
-                            )
-                        }
-                    }.toList()
-                    adapter.apply { addAll(tvShowList) }
-                    }
-                },
-                {
-                    // в случае ошибки
-                    error -> Timber.e(error, "Ошибка при получении телесериалов")
-                }
-            )
-
-        compositeDisposable.add(disposablePopularTvShows)
+        presenter.getTvShows()
     }
 
     private fun openTvShowDetails(tvShow: TvShow) {
@@ -89,6 +65,36 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment) {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        compositeDisposable.clear() // диспозабл освободить!
+        presenter.detachView()
+    }
+
+    override fun showTvShows(tvShows: List<TvShow>) {
+        tvshows_recycler_view.adapter = adapter.apply {
+            addAll(
+                tvShows.map {
+                        TvShowItem(it) { tvShow ->
+                            openTvShowDetails(
+                                tvShow
+                            )
+                        }
+                    }.toList()
+            )
+        }
+    }
+
+    override fun showLoading() {
+        progress_bar.visibility = View.VISIBLE
+    }
+
+    override fun hideLoading() {
+        progress_bar.visibility = View.GONE
+    }
+
+    override fun showEmptyTvShows() {
+        tvshows_recycler_view.adapter = adapter.apply { addAll(listOf()) }
+    }
+
+    override fun showError() {
+        // не знаю, что делать если ошибка.
     }
 }
