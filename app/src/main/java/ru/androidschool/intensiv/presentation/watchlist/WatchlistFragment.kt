@@ -25,15 +25,6 @@ class WatchlistFragment : Fragment(R.layout.fragment_watchlist) {
 
     private lateinit var watchlistViewModel: WatchListViewModel
 
-    private val options = navOptions {
-        anim {
-            enter = R.anim.slide_in_right
-            exit = R.anim.slide_out_left
-            popEnter = R.anim.slide_in_left
-            popExit = R.anim.slide_out_right
-        }
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 

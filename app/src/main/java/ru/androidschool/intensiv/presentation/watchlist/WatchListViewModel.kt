@@ -18,6 +18,13 @@ import timber.log.Timber
 
 class WatchListViewModel(private val navController: NavController, private val appContext: Context, private val repository: MovieRepository) : ViewModel() {
 
+    // у меня все работает - список понравившихся фильмов показывает,
+    // но что-то я сомневаюсь, что так можно - понапихать в конструктор ViewModel всяких нужных мне
+    // реквизитов типа navController, appContext - и потом их использовать.
+
+    // А как сделать по-другому, чтобы и список в LiveData формировался, и при нажатии на элемент списка
+    // чтобы отрабатывала процедура openMovieDetails ? - я не догадался.
+
     private var compositeDisposable: CompositeDisposable
     private val _moviesLiveData = MutableLiveData<List<MoviePreviewItem>>()
 
