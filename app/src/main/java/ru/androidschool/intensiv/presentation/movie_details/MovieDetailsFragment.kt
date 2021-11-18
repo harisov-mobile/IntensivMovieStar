@@ -193,7 +193,7 @@ class MovieDetailsFragment : Fragment() {
     private fun saveLikedMovieToDB(movieDet: MovieDetails, actors: List<Actor>) {
         val movieDBO = MovieMapper.toMovieDBO(movieDet, ViewFeature.FAVORITE)
 
-        val genreDBOList: List<GenreDBO> = GenreMapper.toGenreDBOList(movieDet.genres)
+        val genreDBOList: List<GenreDBO> = GenreMapper.toViewObject(movieDet.genres)
         val actorDBOList: List<ActorDBO> = ActorMapper.toViewObject(actors)
         val productionCompanyDBOList: List<ProductionCompanyDBO> =
             ProductionCompanyMapper.toProductionCompanyDBOList(movieDet.productionCompanies)
