@@ -56,4 +56,6 @@ ext {
     rxJava2AdapterVersion = '2.9.0'
 
     roomVersion = "2.3.0"
+
+    daggerVersion = "2.40.1"
 }
