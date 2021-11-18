@@ -7,8 +7,7 @@ import ru.androidschool.intensiv.presentation.base.BasePresenter
 import timber.log.Timber
 
 class TvShowsPresenter(private val useCase: GetPopularTvShowsUseCase) : BasePresenter<TvShowsPresenter.TvShowsView>()
-{
-    @SuppressLint("CheckResult")
+{   @SuppressLint("CheckResult")
     fun getTvShows() {
         useCase.getPopularTvShows()
             .subscribe(
