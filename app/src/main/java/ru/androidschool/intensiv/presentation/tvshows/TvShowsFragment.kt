@@ -7,18 +7,13 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.navOptions
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
-import io.reactivex.disposables.CompositeDisposable
-import kotlinx.android.synthetic.main.feed_fragment.*
 import kotlinx.android.synthetic.main.progress_bar.*
 import kotlinx.android.synthetic.main.tv_shows_fragment.*
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.dto.TvShow
 import ru.androidschool.intensiv.data.repository.TvShowRepositoryImpl
 import ru.androidschool.intensiv.domain.usecase.GetPopularTvShowsUseCase
-import ru.androidschool.intensiv.ui.applyProgressBar
-import ru.androidschool.intensiv.ui.applySchedulers
 import ru.androidschool.intensiv.utils.Const
-import timber.log.Timber
 
 class TvShowsFragment : Fragment(R.layout.tv_shows_fragment), TvShowsPresenter.TvShowsView {
 
