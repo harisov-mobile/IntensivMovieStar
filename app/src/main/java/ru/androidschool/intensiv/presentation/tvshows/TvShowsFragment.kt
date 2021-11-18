@@ -37,7 +37,7 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment), TvShowsPresenter.T
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Добавляем в presenter имплементацию TvShowsFragment
+        // Добавляем в presenter имплементацию TvShowsFragment (учебный комментарий, в реальном проекте такого комментария не будет)
         presenter.attachView(this)
 
         presenter.getTvShows()
@@ -52,6 +52,7 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment), TvShowsPresenter.T
     override fun onStop() {
         super.onStop()
 
+        // (учебный комментарий, в реальном проекте такого комментария не будет)
         // при клике на сериал и возврате в список
         // происходило добавление в адаптер, в результате чего задваивались списки сериалов
         // поэтому очищаю
@@ -90,6 +91,6 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment), TvShowsPresenter.T
     }
 
     override fun showError() {
-        // не знаю, что делать если ошибка.
+        TODO("Показать Snackbar")
     }
 }

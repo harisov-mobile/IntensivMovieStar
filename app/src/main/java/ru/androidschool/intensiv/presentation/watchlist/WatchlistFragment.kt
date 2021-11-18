@@ -12,7 +12,9 @@ import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.fragment_watchlist.*
 import ru.androidschool.intensiv.R
-import ru.androidschool.intensiv.data.repository.FavoriteMovieRepositoryLocal
+import ru.androidschool.intensiv.data.dbo.MovieDBO
+import ru.androidschool.intensiv.data.repository.MovieRepositoryLocal
+import ru.androidschool.intensiv.utils.Const
 
 class WatchlistFragment : Fragment(R.layout.fragment_watchlist) {
 
@@ -33,26 +35,37 @@ class WatchlistFragment : Fragment(R.layout.fragment_watchlist) {
 
         compositeDisposable = CompositeDisposable()
 
-        // 1. Создаем фабрику
-        val appContext = context?.applicationContext ?: throw IllegalStateException("App context not found")
+        // 1. Создаем фабрику (учебный комментарий, в реальном проекте такого комментария не будет)
+        val watchlistViewModelFactory = WatchlistViewModelFactory(MovieRepositoryLocal.get())
 
-        val watchlistViewModelFactory = WatchlistViewModelFactory(findNavController(), appContext, FavoriteMovieRepositoryLocal)
-
-        // 2. Создаем ViewModel
+        // 2. Создаем ViewModel (учебный комментарий, в реальном проекте такого комментария не будет)
         watchlistViewModel = ViewModelProvider(this, watchlistViewModelFactory).get(WatchListViewModel::class.java)
 
-        // 3. Подписываемся
+        // 3. Подписываемся (учебный комментарий, в реальном проекте такого комментария не будет)
         watchlistViewModel.moviesLiveData.observe(viewLifecycleOwner,
-        Observer { list ->
-            adapter.clear()
-            movies_recycler_view.adapter = adapter.apply { addAll(list) }
-        })
+            Observer { list ->
+                adapter.clear()
 
+                val movieItemList = list.map {
+                    val movie = it.movieDBO
+                    MoviePreviewItem(movie) { movie ->
+                        openMovieDetails(movie)
+                    }
+                }
+                movies_recycler_view.adapter = adapter.apply { addAll(movieItemList) }
+            })
+
+        // 4. Получаем список понравившихся фильмов (учебный комментарий, в реальном проекте такого комментария не будет)
         watchlistViewModel.fetchFavoriteMovies()
     }
 
-    companion object {
+    private fun openMovieDetails(movie: MovieDBO) {
+        val bundle = Bundle()
+        bundle.putInt(Const.KEY_ID, movie.movieId)
+        findNavController().navigate(R.id.movie_details_fragment, bundle)
+    }
 
+    companion object {
         @JvmStatic
         fun newInstance() = WatchlistFragment()
     }

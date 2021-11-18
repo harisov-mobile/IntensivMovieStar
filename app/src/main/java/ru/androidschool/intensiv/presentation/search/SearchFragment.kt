@@ -50,7 +50,7 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
 
         compositeDisposable = CompositeDisposable()
 
-        // считываем аргументы
+        // считываем аргументы (учебный комментарий, в реальном проекте такого комментария не будет)
         val searchTerm = requireArguments().getString(KEY_SEARCH)
         search_toolbar.setText(searchTerm)
         movies_recycler_view.adapter = adapter
@@ -60,7 +60,7 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
             adapter.clear()
         }
 
-        // слушаем нажатия в EditText через PublishSubject
+        // слушаем нажатия в EditText через PublishSubject (учебный комментарий, в реальном проекте такого комментария не будет)
         trackSearchInputBySubject()
     }
 
@@ -68,20 +68,18 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
 
         val searchPublishSubject: PublishSubject<String> = search_edit_text.onTextChangedPublishSubject()
         val searchDisposable = searchPublishSubject
-            .map { it.trim() } // удалить все пробелы
-            .filter { it.length > MIN_LENGTH } // Длина слова должна быть > 3 символов
-            .debounce(SEARCH_DELAY_MILLISEC, TimeUnit.MILLISECONDS) // Отправлять введёное слово не раньше 0.5 секунды с момента окончания ввода
+            .map { it.trim() } // удалить все пробелы (учебный комментарий, в реальном проекте такого комментария не будет)
+            .filter { it.length > MIN_LENGTH } // Длина слова должна быть > 3 символов (учебный комментарий, в реальном проекте такого комментария не будет)
+            .debounce(SEARCH_DELAY_MILLISEC, TimeUnit.MILLISECONDS) // Отправлять введёное слово не раньше 0.5 секунды с момента окончания ввода (учебный комментарий, в реальном проекте такого комментария не будет)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 {
-                    // в случае успешного получения данных:
                     searchTerm -> searchTerm?.let {
                         displaySearchedMovies(searchTerm)
                     }
                 },
                 {
-                    // в случае ошибки
                     error -> Timber.e(error, "Ошибка при поиске фильмов")
                 }
             )
@@ -97,7 +95,7 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
             .applySchedulers()
             .applyProgressBar(progress_bar)
             .subscribe(
-                { // в случае успешного получения данных:
+                {
                     response ->
                     val movieResultList = response.results
                     val movieList = movieResultList.map { movie -> MovieMapper.toMovieVO(movie, ViewFeature.SEARCHED) }
@@ -111,7 +109,6 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
                         adapter.apply { addAll(movieList) }
                 },
                 {
-                    // в случае ошибки
                     error -> Timber.e(error, "Ошибка при поиске фильмов")
                 }
             )
@@ -126,7 +123,7 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        compositeDisposable.clear() // диспозабл освободить!
+        compositeDisposable.clear()
     }
 
     companion object {

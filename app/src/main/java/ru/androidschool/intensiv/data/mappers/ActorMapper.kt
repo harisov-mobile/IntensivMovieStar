@@ -11,5 +11,4 @@ object ActorMapper : ViewObjectMapper<ActorDBO, Actor> {
             profilePath = actor.profilePath
         )
     }
-
 }

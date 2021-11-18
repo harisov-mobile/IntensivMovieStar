@@ -7,9 +7,25 @@ import ru.androidschool.intensiv.data.dbo.MovieAndGenreAndActorAndProductionComp
 import ru.androidschool.intensiv.domain.repository.MovieRepository
 import ru.androidschool.intensiv.utils.ViewFeature
 
-object MovieRepositoryLocal : MovieRepository {
-    override fun getMovies(context: Context, viewFeature: ViewFeature): Single<List<MovieAndGenreAndActorAndProductionCompany>> {
-        val movieDao = MovieDatabase.get(context).movieDao()
-        return movieDao.getMovies(viewFeature)
+class MovieRepositoryLocal private constructor(context: Context) : MovieRepository {
+
+    private val movieDao = MovieDatabase.get(context.applicationContext).movieDao()
+
+    companion object {
+        private var instance: MovieRepositoryLocal? = null
+
+        fun initialize(context: Context) {
+            if (instance == null) {
+                instance = MovieRepositoryLocal(context)
+            }
+        }
+
+        fun get(): MovieRepositoryLocal {
+            return instance ?: throw IllegalStateException("FavoriteMovieRepositoryLocal is not initialized!")
+        }
+    }
+
+    override fun getMovies(viewFeature: ViewFeature): Single<List<MovieAndGenreAndActorAndProductionCompany>> {
+        return movieDao.getMovies(ViewFeature.FAVORITE)
     }
 }

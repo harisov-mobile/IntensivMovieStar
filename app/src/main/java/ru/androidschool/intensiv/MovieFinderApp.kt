@@ -1,6 +1,7 @@
 package ru.androidschool.intensiv
 
 import android.app.Application
+import ru.androidschool.intensiv.data.repository.MovieRepositoryLocal
 import timber.log.Timber
 
 class MovieFinderApp : Application() {
@@ -9,6 +10,8 @@ class MovieFinderApp : Application() {
         super.onCreate()
         instance = this
         initDebugTools()
+
+        MovieRepositoryLocal.initialize(this)
     }
     private fun initDebugTools() {
         if (BuildConfig.DEBUG) {
