@@ -5,7 +5,7 @@ import ru.androidschool.intensiv.data.dto.TvShowResponse
 import ru.androidschool.intensiv.data.network.MovieApiClient
 import ru.androidschool.intensiv.domain.repository.TvShowRepository
 
-object TvShowRepositoryImpl : TvShowRepository {
+object TvShowRepositoryRemote : TvShowRepository {
     override fun getPopularTvShows(): Single<TvShowResponse> {
         return MovieApiClient.apiClient.getPopularTvShows()
     }

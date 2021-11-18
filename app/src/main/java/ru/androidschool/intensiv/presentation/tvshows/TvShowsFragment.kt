@@ -11,7 +11,7 @@ import kotlinx.android.synthetic.main.progress_bar.*
 import kotlinx.android.synthetic.main.tv_shows_fragment.*
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.dto.TvShow
-import ru.androidschool.intensiv.data.repository.TvShowRepositoryImpl
+import ru.androidschool.intensiv.data.repository.TvShowRepositoryRemote
 import ru.androidschool.intensiv.domain.usecase.GetPopularTvShowsUseCase
 import ru.androidschool.intensiv.utils.Const
 
@@ -22,7 +22,7 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment), TvShowsPresenter.T
     }
 
     private val presenter: TvShowsPresenter by lazy {
-        TvShowsPresenter(GetPopularTvShowsUseCase(TvShowRepositoryImpl))
+        TvShowsPresenter(GetPopularTvShowsUseCase(TvShowRepositoryRemote))
     }
 
     private val options = navOptions {
