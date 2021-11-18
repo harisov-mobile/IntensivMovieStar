@@ -87,7 +87,7 @@ class TvShowDetailsFragment : Fragment() {
         val disposableTvShowDetails = singleTvShowDetails
             .applySchedulers()
             .subscribe(
-                { // в случае успешного получения данных:
+                {
                     tvShowDet ->
                     tvShowDetails = tvShowDet
                     tvShowDet?.let { it ->
@@ -110,7 +110,6 @@ class TvShowDetailsFragment : Fragment() {
                     }
                 },
                 {
-                    // в случае ошибки
                     error -> Timber.e(error, "Ошибка при получении TvShowDetails")
                 }
             )
@@ -132,7 +131,6 @@ class TvShowDetailsFragment : Fragment() {
                     }
                 },
                 {
-                    // в случае ошибки
                     error -> Timber.e(error, "Ошибка при получении списка актеров")
                 }
             )
@@ -152,7 +150,7 @@ class TvShowDetailsFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        compositeDisposable.clear() // диспозабл освободить!
+        compositeDisposable.clear()
     }
 
     private fun onLikeCheckBoxChanged(isChecked: Boolean) {
@@ -195,7 +193,6 @@ class TvShowDetailsFragment : Fragment() {
                 likeCheckBox.isChecked = tvShowDBO?.let { true } ?: let { false }
             },
                 {
-                    // в случае ошибки
                     error -> Timber.e(error, "Ошибка при получении понравившегося телесериала.")
                 }
             )

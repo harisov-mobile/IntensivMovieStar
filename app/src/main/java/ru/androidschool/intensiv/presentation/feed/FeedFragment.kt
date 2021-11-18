@@ -105,13 +105,12 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
                 .applyProgressBar(progress_bar)
                 .subscribe(
                     {
-                        // это OnNext
+                        // это OnNext (учебный комментарий, в реальном проекте такого комментария не будет)
                         mainCardContainerList ->
                         adapter.clear()
                         mainCardContainerList.forEach { adapter.apply { addAll(it) } }
                     },
                     {
-                        // в случае ошибки
                         error -> Timber.e(error, "Ошибка при получении фильмов")
                     }
                 )
@@ -146,13 +145,12 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
                 .applyProgressBar(progress_bar)
                 .subscribe(
                     {
-                        // это OnNext
+                        // это OnNext (учебный комментарий, в реальном проекте такого комментария не будет)
                         mainCardContainerList ->
                         adapter.clear() // так как данные из интернета успешно получены, можно очистить адаптер от данных, которые получили из БД
                         mainCardContainerList.forEach { adapter.apply { addAll(it) } }
                     },
                     {
-                        // в случае ошибки
                         error -> Timber.e(error, "Ошибка при получении фильмов")
                     }
                 )
@@ -175,6 +173,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
         super.onStop()
         search_toolbar.clear()
 
+        // (учебный комментарий, в реальном проекте такого комментария не будет)
         // при клике на фильм и возврате в список
         // происходило добавление MainCardContainer в адаптер, в результате чего задваивались списки фильмов
         // поэтому очищаю
@@ -183,7 +182,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        compositeDisposable.clear() // диспозабл освободить!
+        compositeDisposable.clear()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -221,6 +220,7 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
             it.onComplete()
         }
 
+        // (учебный комментарий, в реальном проекте такого комментария не будет)
         // ВОПРОС:
         // НЕ ЗНАЮ, КАК заставить метод deleteViewFeaturedMoviesFromDB выполнится прежде, чем метод insertMoviesToDB
         // У МЕНЯ ВОЗНИКАЕТ СОСТОЯНИЕ "ГОНКИ", метод insertMoviesToDB иногда опережает deleteViewFeaturedMoviesFromDB
@@ -266,9 +266,9 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
         val searchDisposable = search_toolbar.search_edit_text
             .onTextChangedObservable()
             .applySchedulers()
-            .map { it.trim() } // удалить все пробелы
-            .filter { it.length > MIN_LENGTH } // Длина слова должна быть > 3 символов
-            .debounce(SEARCH_DELAY_MILLISEC, TimeUnit.MILLISECONDS) // Отправлять введёное слово не раньше 0.5 секунды с момента окончания ввода
+            .map { it.trim() } // удалить все пробелы (учебный комментарий, в реальном проекте такого комментария не будет)
+            .filter { it.length > MIN_LENGTH } // Длина слова должна быть > 3 символов (учебный комментарий, в реальном проекте такого комментария не будет)
+            .debounce(SEARCH_DELAY_MILLISEC, TimeUnit.MILLISECONDS) // Отправлять введёное слово не раньше 0.5 секунды с момента окончания ввода (учебный комментарий, в реальном проекте такого комментария не будет)
             .subscribe(
                 { searchString ->
                     searchString?.let {
@@ -276,7 +276,6 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
                     }
                 },
                 {
-                    // в случае ошибки
                     error -> Timber.e(error, "Ошибка при поиске")
                 }
             )

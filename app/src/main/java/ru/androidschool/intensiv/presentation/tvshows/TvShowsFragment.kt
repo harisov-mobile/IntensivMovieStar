@@ -11,7 +11,7 @@ import kotlinx.android.synthetic.main.progress_bar.*
 import kotlinx.android.synthetic.main.tv_shows_fragment.*
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.dto.TvShow
-import ru.androidschool.intensiv.data.repository.TvShowRepositoryImpl
+import ru.androidschool.intensiv.data.repository.TvShowRepositoryRemote
 import ru.androidschool.intensiv.domain.usecase.GetPopularTvShowsUseCase
 import ru.androidschool.intensiv.utils.Const
 
@@ -22,7 +22,7 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment), TvShowsPresenter.T
     }
 
     private val presenter: TvShowsPresenter by lazy {
-        TvShowsPresenter(GetPopularTvShowsUseCase(TvShowRepositoryImpl))
+        TvShowsPresenter(GetPopularTvShowsUseCase(TvShowRepositoryRemote))
     }
 
     private val options = navOptions {
@@ -37,7 +37,7 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment), TvShowsPresenter.T
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Добавляем в presenter имплементацию TvShowsFragment
+        // Добавляем в presenter имплементацию TvShowsFragment (учебный комментарий, в реальном проекте такого комментария не будет)
         presenter.attachView(this)
 
         presenter.getTvShows()
@@ -52,6 +52,7 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment), TvShowsPresenter.T
     override fun onStop() {
         super.onStop()
 
+        // (учебный комментарий, в реальном проекте такого комментария не будет)
         // при клике на сериал и возврате в список
         // происходило добавление в адаптер, в результате чего задваивались списки сериалов
         // поэтому очищаю
@@ -90,6 +91,6 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment), TvShowsPresenter.T
     }
 
     override fun showError() {
-        // не знаю, что делать если ошибка.
+        TODO("Показать Snackbar")
     }
 }
