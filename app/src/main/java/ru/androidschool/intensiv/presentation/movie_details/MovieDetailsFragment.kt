@@ -194,7 +194,7 @@ class MovieDetailsFragment : Fragment() {
         val movieDBO = MovieMapper.toMovieDBO(movieDet, ViewFeature.FAVORITE)
 
         val genreDBOList: List<GenreDBO> = GenreMapper.toGenreDBOList(movieDet.genres)
-        val actorDBOList: List<ActorDBO> = ActorMapper.toActorDBOList(actors)
+        val actorDBOList: List<ActorDBO> = ActorMapper.toViewObject(actors)
         val productionCompanyDBOList: List<ProductionCompanyDBO> =
             ProductionCompanyMapper.toProductionCompanyDBOList(movieDet.productionCompanies)
 
