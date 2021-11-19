@@ -54,10 +54,11 @@ class MovieDetailsFragment : Fragment() {
 
     private lateinit var compositeDisposable: CompositeDisposable
 
-    private lateinit var movieRepositoryLocal: MovieRepositoryLocal
-
     @Inject
     lateinit var movieRepositoryRemote: MovieRepositoryRemote
+
+    @Inject
+    lateinit var movieRepositoryLocal: MovieRepositoryLocal
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
@@ -80,11 +81,9 @@ class MovieDetailsFragment : Fragment() {
             onLikeCheckBoxChanged(isChecked)
         }
 
-        // учебный комментарий - инъекция зависимости Даггером (//.movieDetailsModule(MovieDetailsModule()) - почему-то не запускалось без этой строки)
+        // учебный комментарий - инъекция зависимости Даггером
         DaggerMovieDetailsComponent.builder()
             .build().inject(this)
-
-        movieRepositoryLocal = MovieRepositoryLocal.get()
 
         return view
     }

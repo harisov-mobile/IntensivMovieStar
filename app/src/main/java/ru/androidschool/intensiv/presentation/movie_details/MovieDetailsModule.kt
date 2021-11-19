@@ -4,6 +4,7 @@ import dagger.Module
 import dagger.Provides
 import ru.androidschool.intensiv.data.network.MovieApiClient
 import ru.androidschool.intensiv.data.network.MovieApiInterface
+import ru.androidschool.intensiv.data.repository.MovieRepositoryLocal
 import ru.androidschool.intensiv.data.repository.MovieRepositoryRemote
 import javax.inject.Singleton
 
@@ -20,5 +21,11 @@ class MovieDetailsModule() {
     @Provides
     fun provideMovieRepositoryRemote(api: MovieApiInterface): MovieRepositoryRemote {
         return MovieRepositoryRemote(api)
+    }
+
+    @Singleton
+    @Provides
+    fun provideMovieRepositoryLocal(): MovieRepositoryLocal {
+        return MovieRepositoryLocal.get()
     }
 }
