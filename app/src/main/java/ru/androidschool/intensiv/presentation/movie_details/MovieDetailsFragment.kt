@@ -22,7 +22,6 @@ import ru.androidschool.intensiv.data.mappers.ActorMapper
 import ru.androidschool.intensiv.data.mappers.GenreMapper
 import ru.androidschool.intensiv.data.mappers.MovieMapper
 import ru.androidschool.intensiv.data.mappers.ProductionCompanyMapper
-import ru.androidschool.intensiv.data.network.MovieApiClient
 import ru.androidschool.intensiv.data.repository.MovieRepositoryLocal
 import ru.androidschool.intensiv.data.repository.MovieRepositoryRemote
 import ru.androidschool.intensiv.presentation.applySchedulers
@@ -60,13 +59,6 @@ class MovieDetailsFragment : Fragment() {
     @Inject
     lateinit var movieRepositoryRemote: MovieRepositoryRemote
 
-//    val component: MovieDetailsComponent by lazy {
-//        DaggerMovieDetailsComponent
-//            .builder()
-//            .build()
-//    }
-
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
         // так как Гугл рекомендовал отказаться от "синтетиков", я сделал по-старому через findViewById
@@ -88,12 +80,9 @@ class MovieDetailsFragment : Fragment() {
             onLikeCheckBoxChanged(isChecked)
         }
 
-//        //component.inject(this)
-//        DaggerMovieDetailsComponent.builder()
-//            .movieDetailsModule(MovieDetailsModule())
-//            .build().inject(this)
-
-        movieRepositoryRemote = MovieRepositoryRemote(MovieApiClient.apiClient)
+        // учебный комментарий - инъекция зависимости Даггером (//.movieDetailsModule(MovieDetailsModule()) - почему-то не запускалось без этой строки)
+        DaggerMovieDetailsComponent.builder()
+            .build().inject(this)
 
         movieRepositoryLocal = MovieRepositoryLocal.get()
 
@@ -115,7 +104,7 @@ class MovieDetailsFragment : Fragment() {
         val disposableMovieDetails = singleMovieDetails
             .applySchedulers()
             .subscribe(
-                {   movieDet ->
+                { movieDet ->
                     movieDetails = movieDet // сохраню для последующей записи в БД
                     movieDet?.let { it ->
                         titleTextView.text = it.title
@@ -146,7 +135,7 @@ class MovieDetailsFragment : Fragment() {
         val disposableMovieCredits = singleMovieCredits
             .applySchedulers()
             .subscribe(
-                {   it ->
+                { it ->
                     actorList = it // сохраню для последующей записи в БД
                     val actorItemList = it.map {
                         ActorItem(it) { actor -> openActorDetails(actor) } // если понадобится открыть фрагмент с описанием актера

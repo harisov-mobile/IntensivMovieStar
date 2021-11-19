@@ -1,8 +1,9 @@
 package ru.androidschool.intensiv.domain.repository
 
 import io.reactivex.Single
-import ru.androidschool.intensiv.data.dto.*
-import ru.androidschool.intensiv.utils.ViewFeature
+import ru.androidschool.intensiv.data.dto.Actor
+import ru.androidschool.intensiv.data.dto.Movie
+import ru.androidschool.intensiv.data.dto.MovieDetails
 
 interface MovieRepositoryInternet {
     fun getMovies(): Single<List<Movie>>

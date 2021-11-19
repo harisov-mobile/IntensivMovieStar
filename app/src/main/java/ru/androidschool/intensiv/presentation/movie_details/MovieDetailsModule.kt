@@ -2,7 +2,6 @@ package ru.androidschool.intensiv.presentation.movie_details
 
 import dagger.Module
 import dagger.Provides
-import ru.androidschool.intensiv.MovieFinderApp
 import ru.androidschool.intensiv.data.network.MovieApiClient
 import ru.androidschool.intensiv.data.network.MovieApiInterface
 import ru.androidschool.intensiv.data.repository.MovieRepositoryRemote

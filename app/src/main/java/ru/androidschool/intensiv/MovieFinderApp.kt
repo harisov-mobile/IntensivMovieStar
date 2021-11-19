@@ -2,8 +2,6 @@ package ru.androidschool.intensiv
 
 import android.app.Application
 import ru.androidschool.intensiv.data.repository.MovieRepositoryLocal
-import ru.androidschool.intensiv.presentation.movie_details.MovieDetailsComponent
-import ru.androidschool.intensiv.presentation.movie_details.MovieDetailsModule
 import timber.log.Timber
 
 class MovieFinderApp : Application() {
