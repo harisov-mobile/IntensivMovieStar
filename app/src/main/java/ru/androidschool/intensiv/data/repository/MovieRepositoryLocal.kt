@@ -61,4 +61,11 @@ class MovieRepositoryLocal private constructor(context: Context) : MovieReposito
     override fun insertProductionCompanyJoins(joins: List<MovieAndProductionCompanyCrossRef>): Completable {
         return movieDao.insertProductionCompanyJoins(joins)
     }
+
+    override fun getFavoriteMovie(
+        movieId: Int,
+        viewFeature: ViewFeature
+    ): Single<MovieAndGenreAndActorAndProductionCompany> {
+        return getFavoriteMovie(movieId, ViewFeature.FAVORITE)
+    }
 }

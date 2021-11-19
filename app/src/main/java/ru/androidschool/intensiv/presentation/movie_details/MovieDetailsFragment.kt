@@ -25,6 +25,7 @@ import ru.androidschool.intensiv.data.mappers.GenreMapper
 import ru.androidschool.intensiv.data.mappers.MovieMapper
 import ru.androidschool.intensiv.data.mappers.ProductionCompanyMapper
 import ru.androidschool.intensiv.data.network.MovieApiClient
+import ru.androidschool.intensiv.data.repository.MovieRepositoryLocal
 import ru.androidschool.intensiv.presentation.applySchedulers
 import ru.androidschool.intensiv.presentation.feed.ActorItem
 import ru.androidschool.intensiv.ui.applySchedulers
@@ -54,7 +55,7 @@ class MovieDetailsFragment : Fragment() {
 
     private lateinit var compositeDisposable: CompositeDisposable
 
-    private lateinit var movieDao: MovieDao
+    private lateinit var movieRepositoryLocal: MovieRepositoryLocal
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
@@ -77,7 +78,7 @@ class MovieDetailsFragment : Fragment() {
             onLikeCheckBoxChanged(isChecked)
         }
 
-        movieDao = MovieDatabase.get(requireContext()).movieDao()
+        movieRepositoryLocal = MovieRepositoryLocal.get()
 
         return view
     }
@@ -170,7 +171,7 @@ class MovieDetailsFragment : Fragment() {
                 saveLikedMovieToDB(it, actorList ?: emptyList())
             } else {
                 val movieDBO = MovieMapper.toMovieDBO(it, ViewFeature.FAVORITE)
-                compositeDisposable.add(movieDao.delete(movieDBO)
+                compositeDisposable.add(movieRepositoryLocal.delete(movieDBO)
                     .applySchedulers()
                     .subscribe({
                         Toast.makeText(context, "Removed from liked", Toast.LENGTH_SHORT).show()
@@ -201,13 +202,13 @@ class MovieDetailsFragment : Fragment() {
         val movieAndProductionCompanyCrossRefList: List<MovieAndProductionCompanyCrossRef> =
             MovieMapper.toMovieAndProductionCompanyCrossRefList(movieDBO.movieId, productionCompanyDBOList)
 
-        compositeDisposable.add(movieDao.insert(movieDBO)
-            .andThen(movieDao.insertGenres(genreDBOList))
-            .andThen(movieDao.insertActors(actorDBOList))
-            .andThen(movieDao.insertProductionCompanies(productionCompanyDBOList))
-            .andThen(movieDao.insertGenreJoins(movieAndGenreCrossRefList))
-            .andThen(movieDao.insertActorJoins(movieAndActorCrossRefList))
-            .andThen(movieDao.insertProductionCompanyJoins(movieAndProductionCompanyCrossRefList))
+        compositeDisposable.add(movieRepositoryLocal.insert(movieDBO)
+            .andThen(movieRepositoryLocal.insertGenres(genreDBOList))
+            .andThen(movieRepositoryLocal.insertActors(actorDBOList))
+            .andThen(movieRepositoryLocal.insertProductionCompanies(productionCompanyDBOList))
+            .andThen(movieRepositoryLocal.insertGenreJoins(movieAndGenreCrossRefList))
+            .andThen(movieRepositoryLocal.insertActorJoins(movieAndActorCrossRefList))
+            .andThen(movieRepositoryLocal.insertProductionCompanyJoins(movieAndProductionCompanyCrossRefList))
             .applySchedulers()
             .subscribe({
                 Toast.makeText(context, "Written this movie as liked", Toast.LENGTH_SHORT).show()
@@ -221,7 +222,7 @@ class MovieDetailsFragment : Fragment() {
 
     private fun setMovieLiked(movieId: Int) {
 
-        compositeDisposable.add(movieDao.getFavoriteMovie(movieId, ViewFeature.FAVORITE)
+        compositeDisposable.add(movieRepositoryLocal.getFavoriteMovie(movieId, ViewFeature.FAVORITE)
             .applySchedulers()
             .subscribe({ movieDBO ->
                     likeCheckBox.isChecked = movieDBO?.let { true } ?: let { false }

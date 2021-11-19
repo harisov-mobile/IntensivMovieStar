@@ -23,4 +23,6 @@ interface MovieRepositoryDB {
     fun insertActorJoins(joins: List<MovieAndActorCrossRef>): Completable
 
     fun insertProductionCompanyJoins(joins: List<MovieAndProductionCompanyCrossRef>): Completable
+
+    fun getFavoriteMovie(movieId: Int, viewFeature: ViewFeature): Single<MovieAndGenreAndActorAndProductionCompany>
 }
