@@ -1,6 +1,7 @@
 package ru.androidschool.intensiv.data.repository
 
 import io.reactivex.Single
+import ru.androidschool.intensiv.data.dto.Actor
 import ru.androidschool.intensiv.data.dto.Movie
 import ru.androidschool.intensiv.data.dto.MovieDetails
 import ru.androidschool.intensiv.data.network.MovieApiInterface
@@ -14,5 +15,9 @@ class MovieRepositoryRemote @Inject constructor(private val api: MovieApiInterfa
 
     override fun getMovieDetails(movieId: Int): Single<MovieDetails> {
         return api.getMovieDetails(movieId)
+    }
+
+    override fun getMovieCredits(movieId: Int): Single<List<Actor>> {
+        return api.getMovieCredits(movieId).map { it.cast }
     }
 }

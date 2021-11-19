@@ -66,6 +66,6 @@ class MovieRepositoryLocal private constructor(context: Context) : MovieReposito
         movieId: Int,
         viewFeature: ViewFeature
     ): Single<MovieAndGenreAndActorAndProductionCompany> {
-        return getFavoriteMovie(movieId, ViewFeature.FAVORITE)
+        return movieDao.getFavoriteMovie(movieId, ViewFeature.FAVORITE)
     }
 }

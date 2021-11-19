@@ -15,8 +15,6 @@ import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import io.reactivex.disposables.CompositeDisposable
 import ru.androidschool.intensiv.R
-import ru.androidschool.intensiv.data.database.MovieDao
-import ru.androidschool.intensiv.data.database.MovieDatabase
 import ru.androidschool.intensiv.data.dbo.*
 import ru.androidschool.intensiv.data.dto.Actor
 import ru.androidschool.intensiv.data.dto.MovieDetails
@@ -26,6 +24,7 @@ import ru.androidschool.intensiv.data.mappers.MovieMapper
 import ru.androidschool.intensiv.data.mappers.ProductionCompanyMapper
 import ru.androidschool.intensiv.data.network.MovieApiClient
 import ru.androidschool.intensiv.data.repository.MovieRepositoryLocal
+import ru.androidschool.intensiv.data.repository.MovieRepositoryRemote
 import ru.androidschool.intensiv.presentation.applySchedulers
 import ru.androidschool.intensiv.presentation.feed.ActorItem
 import ru.androidschool.intensiv.ui.applySchedulers
@@ -33,6 +32,7 @@ import ru.androidschool.intensiv.ui.loadImage
 import ru.androidschool.intensiv.utils.Const
 import ru.androidschool.intensiv.utils.ViewFeature
 import timber.log.Timber
+import javax.inject.Inject
 
 class MovieDetailsFragment : Fragment() {
 
@@ -57,6 +57,16 @@ class MovieDetailsFragment : Fragment() {
 
     private lateinit var movieRepositoryLocal: MovieRepositoryLocal
 
+    @Inject
+    lateinit var movieRepositoryRemote: MovieRepositoryRemote
+
+//    val component: MovieDetailsComponent by lazy {
+//        DaggerMovieDetailsComponent
+//            .builder()
+//            .build()
+//    }
+
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
         // так как Гугл рекомендовал отказаться от "синтетиков", я сделал по-старому через findViewById
@@ -78,6 +88,13 @@ class MovieDetailsFragment : Fragment() {
             onLikeCheckBoxChanged(isChecked)
         }
 
+//        //component.inject(this)
+//        DaggerMovieDetailsComponent.builder()
+//            .movieDetailsModule(MovieDetailsModule())
+//            .build().inject(this)
+
+        movieRepositoryRemote = MovieRepositoryRemote(MovieApiClient.apiClient)
+
         movieRepositoryLocal = MovieRepositoryLocal.get()
 
         return view
@@ -93,7 +110,8 @@ class MovieDetailsFragment : Fragment() {
         compositeDisposable = CompositeDisposable()
 
         // Получаем детальную информацию о фильме
-        val singleMovieDetails = MovieApiClient.apiClient.getMovieDetails(movieId)
+        // учебный комментарий - movieRepositoryRemote должна "прилететь" через Даггер
+        val singleMovieDetails = movieRepositoryRemote.getMovieDetails(movieId)
         val disposableMovieDetails = singleMovieDetails
             .applySchedulers()
             .subscribe(
@@ -124,18 +142,16 @@ class MovieDetailsFragment : Fragment() {
         compositeDisposable.add(disposableMovieDetails)
 
         // получаем список актеров из фильма и "приготавливаем" для Groupie
-        val singleMovieCredits = MovieApiClient.apiClient.getMovieCredits(movieId)
+        val singleMovieCredits = movieRepositoryRemote.getMovieCredits(movieId)
         val disposableMovieCredits = singleMovieCredits
             .applySchedulers()
             .subscribe(
-                {   movieCreditsResponse ->
-                    movieCreditsResponse?.let { movieCreditsResponse ->
-                        actorList = movieCreditsResponse.cast // сохраню для последующей записи в БД
-                        val actorItemList = movieCreditsResponse.cast.map {
-                            ActorItem(it) { actor -> openActorDetails(actor) } // если понадобится открыть фрагмент с описанием актера
-                        }.toList()
-                        adapter.apply { addAll(actorItemList) }
-                    }
+                {   it ->
+                    actorList = it // сохраню для последующей записи в БД
+                    val actorItemList = it.map {
+                        ActorItem(it) { actor -> openActorDetails(actor) } // если понадобится открыть фрагмент с описанием актера
+                    }.toList()
+                    adapter.apply { addAll(actorItemList) }
                 },
                 {
                     error -> Timber.e(error, "Ошибка при получении списка актеров")
@@ -161,7 +177,7 @@ class MovieDetailsFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        compositeDisposable.clear() // диспозабл освободить!
+        compositeDisposable.clear()
     }
 
     private fun onLikeCheckBoxChanged(isChecked: Boolean) {
