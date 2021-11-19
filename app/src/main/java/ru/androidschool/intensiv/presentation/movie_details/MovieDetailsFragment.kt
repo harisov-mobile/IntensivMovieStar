@@ -96,8 +96,7 @@ class MovieDetailsFragment : Fragment() {
         val disposableMovieDetails = singleMovieDetails
             .applySchedulers()
             .subscribe(
-                { // в случае успешного получения данных:
-                        movieDet ->
+                {   movieDet ->
                     movieDetails = movieDet // сохраню для последующей записи в БД
                     movieDet?.let { it ->
                         titleTextView.text = it.title
@@ -117,9 +116,7 @@ class MovieDetailsFragment : Fragment() {
                     }
                 },
                 {
-                    // в случае ошибки
-                        error ->
-                    Timber.e(error, "Ошибка при получении детальной информации о фильме")
+                    error -> Timber.e(error, "Ошибка при получении детальной информации о фильме")
                 }
             )
 
@@ -130,8 +127,7 @@ class MovieDetailsFragment : Fragment() {
         val disposableMovieCredits = singleMovieCredits
             .applySchedulers()
             .subscribe(
-                { // в случае успешного получения данных:
-                        movieCreditsResponse ->
+                {   movieCreditsResponse ->
                     movieCreditsResponse?.let { movieCreditsResponse ->
                         actorList = movieCreditsResponse.cast // сохраню для последующей записи в БД
                         val actorItemList = movieCreditsResponse.cast.map {
@@ -141,9 +137,7 @@ class MovieDetailsFragment : Fragment() {
                     }
                 },
                 {
-                    // в случае ошибки
-                        error ->
-                    Timber.e(error, "Ошибка при получении списка актеров")
+                    error -> Timber.e(error, "Ошибка при получении списка актеров")
                 }
             )
 
@@ -230,10 +224,9 @@ class MovieDetailsFragment : Fragment() {
         compositeDisposable.add(movieDao.getFavoriteMovie(movieId, ViewFeature.FAVORITE)
             .applySchedulers()
             .subscribe({ movieDBO ->
-                likeCheckBox.isChecked = movieDBO?.let { true } ?: let { false }
-            },
+                    likeCheckBox.isChecked = movieDBO?.let { true } ?: let { false }
+                },
                 {
-                    // в случае ошибки
                     error -> Timber.e(error, "Ошибка при получении понравившегося фильма.")
                 }
             )
