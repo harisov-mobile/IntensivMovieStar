@@ -4,6 +4,6 @@ import io.reactivex.Single
 import ru.androidschool.intensiv.data.dbo.MovieAndGenreAndActorAndProductionCompany
 import ru.androidschool.intensiv.utils.ViewFeature
 
-interface MovieRepository {
+interface MovieRepositoryDB {
     fun getMovies(viewFeature: ViewFeature): Single<List<MovieAndGenreAndActorAndProductionCompany>>
 }

@@ -4,10 +4,10 @@ import android.content.Context
 import io.reactivex.Single
 import ru.androidschool.intensiv.data.database.MovieDatabase
 import ru.androidschool.intensiv.data.dbo.MovieAndGenreAndActorAndProductionCompany
-import ru.androidschool.intensiv.domain.repository.MovieRepository
+import ru.androidschool.intensiv.domain.repository.MovieRepositoryDB
 import ru.androidschool.intensiv.utils.ViewFeature
 
-class MovieRepositoryLocal private constructor(context: Context) : MovieRepository {
+class MovieRepositoryLocal private constructor(context: Context) : MovieRepositoryDB {
 
     private val movieDao = MovieDatabase.get(context.applicationContext).movieDao()
 
