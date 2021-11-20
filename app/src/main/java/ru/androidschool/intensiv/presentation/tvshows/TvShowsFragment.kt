@@ -9,9 +9,7 @@ import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import kotlinx.android.synthetic.main.progress_bar.*
 import kotlinx.android.synthetic.main.tv_shows_fragment.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.dto.TvShow
 import ru.androidschool.intensiv.data.repository.TvShowRepositoryRemote
@@ -28,6 +26,8 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment), TvShowsPresenter.T
         TvShowsPresenter(GetPopularTvShowsUseCase(TvShowRepositoryRemote))
     }
 
+    private lateinit var localCoroutineScope: CoroutineScope
+
     private val options = navOptions {
         anim {
             enter = R.anim.slide_in_right
@@ -43,7 +43,8 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment), TvShowsPresenter.T
         // Добавляем в presenter имплементацию TvShowsFragment (учебный комментарий, в реальном проекте такого комментария не будет)
         presenter.attachView(this)
 
-        GlobalScope.launch(Dispatchers.Main) {
+        localCoroutineScope = CoroutineScope(Job())
+        localCoroutineScope.launch(Dispatchers.Main) {
             presenter.getTvShows()
         }
     }
@@ -56,7 +57,7 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment), TvShowsPresenter.T
 
     override fun onStop() {
         super.onStop()
-        //MvpModelScope.cancel()
+        localCoroutineScope.cancel()
     }
 
     override fun onDestroyView() {
