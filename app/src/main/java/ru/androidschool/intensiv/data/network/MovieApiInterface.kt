@@ -28,10 +28,10 @@ interface MovieApiInterface {
     ): Single<MovieResponse>
 
     @GET("tv/popular")
-    fun getPopularTvShows(
+    suspend fun getPopularTvShows(
         @Query("api_key") apiKey: String = BuildConfig.THE_MOVIE_DATABASE_API,
         @Query("language") language: String = REQUIRED_LANGUAGE
-    ): Single<TvShowResponse>
+    ): TvShowResponse
 
     @GET("movie/{movie_id}")
     fun getMovieDetails(
