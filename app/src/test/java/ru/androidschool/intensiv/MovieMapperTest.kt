@@ -44,7 +44,6 @@ class MovieMapperTest {
             actors = emptyList(),
             viewFeature = ViewFeature.FAVORITE
         )
-
     }
 
     @Test
