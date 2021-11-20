@@ -5,12 +5,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import io.reactivex.disposables.CompositeDisposable
 import ru.androidschool.intensiv.data.dbo.MovieAndGenreAndActorAndProductionCompany
-import ru.androidschool.intensiv.domain.repository.MovieRepository
+import ru.androidschool.intensiv.domain.repository.MovieRepositoryDB
 import ru.androidschool.intensiv.domain.usecase.GetFavoriteMoviesUseCase
 import ru.androidschool.intensiv.ui.applySchedulers
 import timber.log.Timber
 
-class WatchListViewModel(private val repository: MovieRepository) : ViewModel() {
+class WatchListViewModel(private val repository: MovieRepositoryDB) : ViewModel() {
 
     private var compositeDisposable: CompositeDisposable
 

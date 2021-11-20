@@ -15,8 +15,6 @@ import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import io.reactivex.disposables.CompositeDisposable
 import ru.androidschool.intensiv.R
-import ru.androidschool.intensiv.data.database.MovieDao
-import ru.androidschool.intensiv.data.database.MovieDatabase
 import ru.androidschool.intensiv.data.dbo.*
 import ru.androidschool.intensiv.data.dto.Actor
 import ru.androidschool.intensiv.data.dto.MovieDetails
@@ -24,7 +22,8 @@ import ru.androidschool.intensiv.data.mappers.ActorMapper
 import ru.androidschool.intensiv.data.mappers.GenreMapper
 import ru.androidschool.intensiv.data.mappers.MovieMapper
 import ru.androidschool.intensiv.data.mappers.ProductionCompanyMapper
-import ru.androidschool.intensiv.data.network.MovieApiClient
+import ru.androidschool.intensiv.data.repository.MovieRepositoryLocal
+import ru.androidschool.intensiv.data.repository.MovieRepositoryRemote
 import ru.androidschool.intensiv.presentation.applySchedulers
 import ru.androidschool.intensiv.presentation.feed.ActorItem
 import ru.androidschool.intensiv.ui.applySchedulers
@@ -32,6 +31,7 @@ import ru.androidschool.intensiv.ui.loadImage
 import ru.androidschool.intensiv.utils.Const
 import ru.androidschool.intensiv.utils.ViewFeature
 import timber.log.Timber
+import javax.inject.Inject
 
 class MovieDetailsFragment : Fragment() {
 
@@ -54,7 +54,11 @@ class MovieDetailsFragment : Fragment() {
 
     private lateinit var compositeDisposable: CompositeDisposable
 
-    private lateinit var movieDao: MovieDao
+    @Inject
+    lateinit var movieRepositoryRemote: MovieRepositoryRemote
+
+    @Inject
+    lateinit var movieRepositoryLocal: MovieRepositoryLocal
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
@@ -77,7 +81,9 @@ class MovieDetailsFragment : Fragment() {
             onLikeCheckBoxChanged(isChecked)
         }
 
-        movieDao = MovieDatabase.get(requireContext()).movieDao()
+        // учебный комментарий - инъекция зависимости Даггером
+        DaggerMovieDetailsComponent.builder()
+            .build().inject(this)
 
         return view
     }
@@ -92,12 +98,12 @@ class MovieDetailsFragment : Fragment() {
         compositeDisposable = CompositeDisposable()
 
         // Получаем детальную информацию о фильме
-        val singleMovieDetails = MovieApiClient.apiClient.getMovieDetails(movieId)
+        // учебный комментарий - movieRepositoryRemote должна "прилететь" через Даггер
+        val singleMovieDetails = movieRepositoryRemote.getMovieDetails(movieId)
         val disposableMovieDetails = singleMovieDetails
             .applySchedulers()
             .subscribe(
-                { // в случае успешного получения данных:
-                        movieDet ->
+                { movieDet ->
                     movieDetails = movieDet // сохраню для последующей записи в БД
                     movieDet?.let { it ->
                         titleTextView.text = it.title
@@ -117,33 +123,26 @@ class MovieDetailsFragment : Fragment() {
                     }
                 },
                 {
-                    // в случае ошибки
-                        error ->
-                    Timber.e(error, "Ошибка при получении детальной информации о фильме")
+                    error -> Timber.e(error, "Ошибка при получении детальной информации о фильме")
                 }
             )
 
         compositeDisposable.add(disposableMovieDetails)
 
         // получаем список актеров из фильма и "приготавливаем" для Groupie
-        val singleMovieCredits = MovieApiClient.apiClient.getMovieCredits(movieId)
+        val singleMovieCredits = movieRepositoryRemote.getMovieCredits(movieId)
         val disposableMovieCredits = singleMovieCredits
             .applySchedulers()
             .subscribe(
-                { // в случае успешного получения данных:
-                        movieCreditsResponse ->
-                    movieCreditsResponse?.let { movieCreditsResponse ->
-                        actorList = movieCreditsResponse.cast // сохраню для последующей записи в БД
-                        val actorItemList = movieCreditsResponse.cast.map {
-                            ActorItem(it) { actor -> openActorDetails(actor) } // если понадобится открыть фрагмент с описанием актера
-                        }.toList()
-                        adapter.apply { addAll(actorItemList) }
-                    }
+                { it ->
+                    actorList = it // сохраню для последующей записи в БД
+                    val actorItemList = it.map {
+                        ActorItem(it) { actor -> openActorDetails(actor) } // если понадобится открыть фрагмент с описанием актера
+                    }.toList()
+                    adapter.apply { addAll(actorItemList) }
                 },
                 {
-                    // в случае ошибки
-                        error ->
-                    Timber.e(error, "Ошибка при получении списка актеров")
+                    error -> Timber.e(error, "Ошибка при получении списка актеров")
                 }
             )
 
@@ -166,7 +165,7 @@ class MovieDetailsFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        compositeDisposable.clear() // диспозабл освободить!
+        compositeDisposable.clear()
     }
 
     private fun onLikeCheckBoxChanged(isChecked: Boolean) {
@@ -176,7 +175,7 @@ class MovieDetailsFragment : Fragment() {
                 saveLikedMovieToDB(it, actorList ?: emptyList())
             } else {
                 val movieDBO = MovieMapper.toMovieDBO(it, ViewFeature.FAVORITE)
-                compositeDisposable.add(movieDao.delete(movieDBO)
+                compositeDisposable.add(movieRepositoryLocal.delete(movieDBO)
                     .applySchedulers()
                     .subscribe({
                         Toast.makeText(context, "Removed from liked", Toast.LENGTH_SHORT).show()
@@ -207,13 +206,13 @@ class MovieDetailsFragment : Fragment() {
         val movieAndProductionCompanyCrossRefList: List<MovieAndProductionCompanyCrossRef> =
             MovieMapper.toMovieAndProductionCompanyCrossRefList(movieDBO.movieId, productionCompanyDBOList)
 
-        compositeDisposable.add(movieDao.insert(movieDBO)
-            .andThen(movieDao.insertGenres(genreDBOList))
-            .andThen(movieDao.insertActors(actorDBOList))
-            .andThen(movieDao.insertProductionCompanies(productionCompanyDBOList))
-            .andThen(movieDao.insertGenreJoins(movieAndGenreCrossRefList))
-            .andThen(movieDao.insertActorJoins(movieAndActorCrossRefList))
-            .andThen(movieDao.insertProductionCompanyJoins(movieAndProductionCompanyCrossRefList))
+        compositeDisposable.add(movieRepositoryLocal.insert(movieDBO)
+            .andThen(movieRepositoryLocal.insertGenres(genreDBOList))
+            .andThen(movieRepositoryLocal.insertActors(actorDBOList))
+            .andThen(movieRepositoryLocal.insertProductionCompanies(productionCompanyDBOList))
+            .andThen(movieRepositoryLocal.insertGenreJoins(movieAndGenreCrossRefList))
+            .andThen(movieRepositoryLocal.insertActorJoins(movieAndActorCrossRefList))
+            .andThen(movieRepositoryLocal.insertProductionCompanyJoins(movieAndProductionCompanyCrossRefList))
             .applySchedulers()
             .subscribe({
                 Toast.makeText(context, "Written this movie as liked", Toast.LENGTH_SHORT).show()
@@ -227,13 +226,12 @@ class MovieDetailsFragment : Fragment() {
 
     private fun setMovieLiked(movieId: Int) {
 
-        compositeDisposable.add(movieDao.getFavoriteMovie(movieId, ViewFeature.FAVORITE)
+        compositeDisposable.add(movieRepositoryLocal.getFavoriteMovie(movieId, ViewFeature.FAVORITE)
             .applySchedulers()
             .subscribe({ movieDBO ->
-                likeCheckBox.isChecked = movieDBO?.let { true } ?: let { false }
-            },
+                    likeCheckBox.isChecked = movieDBO?.let { true } ?: let { false }
+                },
                 {
-                    // в случае ошибки
                     error -> Timber.e(error, "Ошибка при получении понравившегося фильма.")
                 }
             )
