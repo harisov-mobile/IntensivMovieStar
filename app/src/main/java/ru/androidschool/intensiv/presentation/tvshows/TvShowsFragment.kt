@@ -9,6 +9,9 @@ import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import kotlinx.android.synthetic.main.progress_bar.*
 import kotlinx.android.synthetic.main.tv_shows_fragment.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import ru.androidschool.intensiv.R
 import ru.androidschool.intensiv.data.dto.TvShow
 import ru.androidschool.intensiv.data.repository.TvShowRepositoryRemote
@@ -40,7 +43,9 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment), TvShowsPresenter.T
         // Добавляем в presenter имплементацию TvShowsFragment (учебный комментарий, в реальном проекте такого комментария не будет)
         presenter.attachView(this)
 
-        presenter.getTvShows()
+        GlobalScope.launch(Dispatchers.Main) {
+            presenter.getTvShows()
+        }
     }
 
     private fun openTvShowDetails(tvShow: TvShow) {
@@ -51,12 +56,7 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment), TvShowsPresenter.T
 
     override fun onStop() {
         super.onStop()
-
-        // (учебный комментарий, в реальном проекте такого комментария не будет)
-        // при клике на сериал и возврате в список
-        // происходило добавление в адаптер, в результате чего задваивались списки сериалов
-        // поэтому очищаю
-        adapter.clear()
+        //MvpModelScope.cancel()
     }
 
     override fun onDestroyView() {
@@ -65,6 +65,7 @@ class TvShowsFragment : Fragment(R.layout.tv_shows_fragment), TvShowsPresenter.T
     }
 
     override fun showTvShows(tvShows: List<TvShow>) {
+        adapter.clear()
         tvshows_recycler_view.adapter = adapter.apply {
             addAll(
                 tvShows.map {
