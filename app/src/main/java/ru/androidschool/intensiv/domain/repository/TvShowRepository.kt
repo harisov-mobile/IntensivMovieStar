@@ -1,8 +1,7 @@
 package ru.androidschool.intensiv.domain.repository
 
-import io.reactivex.Single
-import ru.androidschool.intensiv.data.dto.TvShowResponse
+import ru.androidschool.intensiv.data.dto.TvShow
 
 interface TvShowRepository {
-    fun getPopularTvShows(): Single<TvShowResponse>
+    suspend fun getPopularTvShows(): List<TvShow>
 }
